@@ -122,7 +122,7 @@ void test_krino_sensitivities_against_expected(
     const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
     const std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>&
         aExpectedSensitivityValues,
-    plato::test_utilities::TestContext aTestContext)
+    const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
     aWrapper.writeCutMesh(tCutFilename);
@@ -161,7 +161,7 @@ void test_krino_sensitivities_against_expected(
 }
 
 void test_expected_sensitivity_information_near_interface_above_cdfem_edge_tolerance(
-    const double aOffset, KrinoWrapper aWrapper, plato::test_utilities::TestContext aTestContext)
+    const double aOffset, KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_GE(aOffset, kCDFEMEdgeTolerance);
     const double tOneMinusOffset = 1.0 - aOffset;
@@ -173,11 +173,11 @@ void test_expected_sensitivity_information_near_interface_above_cdfem_edge_toler
             {9, {{0.0, aOffset, 0.0}, {0.0, tOneMinusOffset, 0.0}}},
             {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
-                                              std::move(aTestContext));
+                                              aTestContext);
 }
 
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-    const double aOffset, KrinoWrapper aWrapper, plato::test_utilities::TestContext aTestContext)
+    const double aOffset, KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
     const double tOneMinusOffset = 1.0 - aOffset;
@@ -187,11 +187,11 @@ void test_expected_sensitivity_information_near_interface_below_cdfem_edge_toler
         std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
             {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
-                                              std::move(aTestContext));
+                                              aTestContext);
 }
 
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
-    const double aOffset, KrinoWrapper aWrapper, plato::test_utilities::TestContext aTestContext)
+    const double aOffset, KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
     const auto tExpectedParentNodes =
@@ -200,7 +200,7 @@ void test_expected_sensitivity_information_near_interface_below_cdfem_edge_toler
         std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
             {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
-                                              std::move(aTestContext));
+                                              aTestContext);
 }
 
 struct KrinoWrapperGoldValues
