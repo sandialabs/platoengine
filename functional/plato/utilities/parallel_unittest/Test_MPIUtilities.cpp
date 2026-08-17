@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <functional>
 #include <ranges>
@@ -91,6 +92,51 @@ TEST(MPIUtilities, GroupSynchronizedDouble)
                                                                           .mGroupColor = ColorNamedType{tGroupColor}},
                                                      tParentCommunicatorBroadcastRank);
         EXPECT_EQ(tReceivedPayload, tPayload);
+    }
+}
+
+TEST(MPIUtilities, MPICollectiveTryNoThrow)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+    const auto tMPIOperation = [](const int aRank) { return aRank; };
+    const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank);
+    const auto tAllRanksSummed = boost::mpi::all_reduce(tCommunicator, tResult, std::plus{});
+
+    const auto tNumberOfRanks = tCommunicator.size();
+    const auto tExpected = tNumberOfRanks * (tNumberOfRanks - 1) / 2;
+    EXPECT_EQ(tAllRanksSummed, tExpected);
+}
+
+TEST(MPIUtilities, MPICollectiveTryThrows)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+    {
+        const auto tMPIOperation = [](const int aRank)
+        {
+            if (aRank == 0)
+            {
+                throw std::runtime_error{"Testing throw only on rank 0"};
+            }
+            return aRank;
+        };
+        EXPECT_THROW([[maybe_unused]] const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank),
+                     std::runtime_error)
+            << "Throws std::runtime_error";
+    }
+    {
+        const auto tMPIOperation = [](const int aRank)
+        {
+            if (aRank == 0)
+            {
+                throw aRank;
+            }
+            return aRank;
+        };
+        EXPECT_THROW([[maybe_unused]] const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank),
+                     std::runtime_error)
+            << "Throws int, why would anyone do that?";
     }
 }
 

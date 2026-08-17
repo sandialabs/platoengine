@@ -3,8 +3,10 @@
 
 #include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <format>
 #include <utility>
 
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::utilities
@@ -42,6 +44,26 @@ template <typename F, typename... Args>
                                          int aParentBroadcastRank,
                                          const F& aFunction,
                                          Args&&... aArgs);
+
+/// @brief Helper variable template for checking if a function has a value-type return.
+template <typename Function, typename... Args>
+constexpr inline auto kHasValueTypeReturn =
+    std::is_invocable_v<Function, Args...> && !std::is_void_v<std::invoke_result_t<Function, Args...>> &&
+    !std::is_reference_v<std::invoke_result_t<Function, Args...>>;
+
+/// @brief Executes @a aOperation on all ranks inside a `try/catch` block. If any rank throws, this will then throw
+/// on all ranks, though the exception type may be different.
+///
+/// @note This can be used to handle the case in which some subset of ranks in a collective operation may throw.
+///  When that happens, any subsequent blocking MPI operations may result in a hang since some ranks will be processing
+///  exceptions and some will advance as normal.
+/// @note This is only implemented for value-type return types. It is not implemented for `void` or reference-types.
+///  Returning reference-types requires some additional care since some ranks may not return anything if they throw.
+template <typename Function, typename... Args>
+    requires kHasValueTypeReturn<Function, Args...>
+[[nodiscard]] auto mpi_collective_try(const boost::mpi::communicator& aCommunicator,
+                                      const Function& aOperation,
+                                      Args&&... aArgs);
 
 namespace customization
 {
@@ -99,6 +121,42 @@ auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
     }
     return customization::group_synchronized_object(std::move(tResult), aGroupCommunicator, aParentBroadcastRank);
 }
+
+template <typename Function, typename... Args>
+    requires kHasValueTypeReturn<Function, Args...>
+auto mpi_collective_try(const boost::mpi::communicator& aCommunicator, const Function& aOperation, Args&&... aArgs)
+{
+    using ReturnType = decltype(aOperation(std::forward<Args>(aArgs)...));
+
+    auto tExceptionMessage = std::optional<std::string>{};
+    auto tFunctionReturn = std::optional<ReturnType>{};
+    try
+    {
+        tFunctionReturn = aOperation(std::forward<Args>(aArgs)...);
+    }
+    catch (const std::exception& tException)
+    {
+        const auto tRank = aCommunicator.rank();
+        tExceptionMessage =
+            std::format("Encountered an exception on rank {} with message: {}\n", tRank, tException.what());
+    }
+    catch (...)
+    {
+        const auto tRank = aCommunicator.rank();
+        tExceptionMessage =
+            std::format("Encountered an uknown exception in an MPI collective operation on rank {}.", tRank);
+    }
+
+    if (boost::mpi::all_reduce(aCommunicator, tExceptionMessage.has_value(), std::logical_or{}))
+    {
+        const auto tNewExceptionMessage = tExceptionMessage.value_or(
+            std::string{"Another rank encountered an exception in an MPI collective operation."});
+        throw Exception{tNewExceptionMessage};
+    }
+
+    return std::move(tFunctionReturn).value();
+}
+
 }  // namespace plato::utilities
 
 #endif
