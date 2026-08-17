@@ -1,6 +1,6 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 
-#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_DefaultMpiComm_decl.hpp>
 #include <Teuchos_RCP.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>

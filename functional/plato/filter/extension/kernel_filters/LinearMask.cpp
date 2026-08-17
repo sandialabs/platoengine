@@ -1,7 +1,7 @@
 #include "plato/filter/extension/kernel_filters/LinearMask.hpp"
 
 #include <Teuchos_BLAS_types.hpp>
-#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_DefaultMpiComm_decl.hpp>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_RCPDecl.hpp>
 #include <boost/mpi/collectives.hpp>
