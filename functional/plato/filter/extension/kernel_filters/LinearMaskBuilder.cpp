@@ -1,7 +1,7 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 
 #include <Teuchos_ArrayViewDecl.hpp>
-#include <Teuchos_DefaultMpiComm_decl.hpp>
+#include <Teuchos_DefaultMpiComm.hpp>
 #include <Teuchos_RCP.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
