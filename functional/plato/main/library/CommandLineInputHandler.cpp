@@ -77,7 +77,8 @@ auto run_plato(const std::filesystem::path& aInputFile) -> ExitStatus
     }
     catch (const std::exception& tError)
     {
-        services::system_logger().logError("Plato encountered an exception, exiting.");
+        services::system_logger().logError(
+            "Plato encountered an exception, exiting. Check log files for additional error messages.");
         services::system_logger().logError(tError.what());
         return ExitStatus::kRuntimeError;
     }
