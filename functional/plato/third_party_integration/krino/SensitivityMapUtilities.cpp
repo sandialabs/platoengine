@@ -1,7 +1,6 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 
-#include <Akri_ChildNodeStencil.hpp>  //ChildNodeStencil
-#include <Akri_LevelSet.hpp>          //LevelSet
+#include <Akri_LevelSet.hpp>  //LevelSet
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_Phase_Support.hpp>
 #include <algorithm>
