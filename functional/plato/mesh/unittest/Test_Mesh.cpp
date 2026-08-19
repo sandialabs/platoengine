@@ -179,6 +179,14 @@ TEST_F(TwoDThreeBlockMesh, PartVectors)
     EXPECT_EQ(tSpecifiedParts.back().get().mesh_meta_data_ordinal(), tFixedBlockOrdinals.back());
 }
 
+TEST_F(OneBlock3x1x1HexMesh, ConstructFromAnalysisDomainMeshCoordinateVariables)
+{
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {}};
+    const auto tMesh = Mesh{tAnalysisDomainMesh};
+    EXPECT_EQ(tMesh.designBlockOrdinals().size(), 1U);
+    EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), 0U);
+}
+
 TEST_F(TwoDThreeBlockMesh, ConstructionFromAnalysisDomainMesh)
 {
     // Element-based densities
@@ -197,13 +205,14 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromAnalysisDomainMesh)
         EXPECT_EQ(aMesh.fixedBlockOrdinals(), aExpectedFixedBlockOrdinals) << aTestContext;
     };
 
-    const auto tAllFixedBlocksContext = TEST_CONTEXT("All fixed blocks");
+    const auto tCoordinateSensitivityAllDomainBlocksContext = TEST_CONTEXT("All domain blocks");
     {
         const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, {}}};
-        const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
-        const auto tExpectedFixedBlockOrdinals =
+        const auto tExpectedDesignBlockOrdinals =
             std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
-        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, tAllFixedBlocksContext);
+        const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
+        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals,
+                      tCoordinateSensitivityAllDomainBlocksContext);
     }
     const auto tOneBlockContext = TEST_CONTEXT("One fixed block");
     {
