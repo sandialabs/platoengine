@@ -4,6 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <functional>
 #include <ranges>
+#include <stdexcept>
 
 #include "plato/utilities/MPIUtilities.hpp"
 
@@ -29,6 +30,12 @@ TEST(MPIUtilities, ExecuteOnRoot)
     {
         EXPECT_EQ(tInteger, tOriginal);
     }
+}
+
+TEST(MPIUtilities, ExecuteOnRootWithFunctionThatThrows)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_THROW(execute_on_root(tCommunicator, []() { throw std::domain_error{"Oh my."}; }), std::runtime_error);
 }
 
 TEST(MPIUtilities, GroupSplitCommunicator)
@@ -127,6 +134,7 @@ TEST(MPIUtilities, MPICollectiveTryThrows)
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
+
     {
         const auto tMPIOperation = [](const int aRank)
         {
@@ -152,6 +160,38 @@ TEST(MPIUtilities, MPICollectiveTryThrows)
         EXPECT_THROW([[maybe_unused]] const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank),
                      std::runtime_error)
             << "Throws int, why would anyone do that?";
+    }
+}
+
+namespace
+{
+struct Shoe
+{
+};
+}  // namespace
+
+TEST(MPIUtilities, MPICollectiveTryVoidReturn)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+    {
+        using Function = std::function<void()>;
+        const auto tFunction =
+            tRank == 0 ? Function{[]() { throw std::logic_error{"Testing throw only on rank 0"}; }} : Function{[]() {}};
+        EXPECT_THROW(mpi_collective_try(tCommunicator, tFunction), std::runtime_error) << "Throws std::runtime_error";
+    }
+    {
+        using Function = std::function<void()>;
+        const auto tFunction = tRank == 0 ? Function{[]() { throw Shoe{}; }} : Function{[]() {}};
+        EXPECT_THROW(mpi_collective_try(tCommunicator, tFunction), std::runtime_error)
+            << "Who throws a shoe, honestly?";
+    }
+    {
+        constexpr auto tValueToAssign = 187;
+        auto tValueToBeAssigned = 0;
+        const auto tMPIOperation = [&tValueToBeAssigned]() { tValueToBeAssigned = tValueToAssign; };
+        mpi_collective_try(tCommunicator, tMPIOperation);
+        EXPECT_EQ(tValueToBeAssigned, tValueToAssign) << "No throw";
     }
 }
 

@@ -3,18 +3,17 @@
 
 #include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <format>
 #include <utility>
 
-#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::utilities
 {
 
-///@brief Utility function that takes a communicator @a aCommunicator and only performs the function @a aFunction with
-/// arguments
-///@a aArgs on the root rank.
+/// @brief Utility function that takes a communicator @a aCommunicator and only performs the function @a aFunction with
+///  arguments
+/// @a aArgs on the root rank.
+/// @throw `std::runtime_error` Throws on all ranks if an exception is thrown during the execution of @a aFunction.
 template <typename F, typename... Args>
 void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFunction, Args&&... aArgs);
 
@@ -35,16 +34,21 @@ struct MPIGroupCommunicator
 
 /// @brief Helper variable template for checking if a function has a value-type return.
 template <typename Function, typename... Args>
-constexpr inline auto kHasValueTypeReturn =
-    std::is_invocable_v<Function, Args...> && !std::is_void_v<std::invoke_result_t<Function, Args...>> &&
+concept HasValueTypeReturn =
+    std::invocable<Function, Args...> && !std::is_void_v<std::invoke_result_t<Function, Args...>> &&
     !std::is_reference_v<std::invoke_result_t<Function, Args...>>;
+
+/// @brief Helper variable template for checking if a function has void return.
+template <typename Function, typename... Args>
+concept HasVoidReturn = std::invocable<Function, Args...> && std::is_void_v<std::invoke_result_t<Function, Args...>>;
 
 /// @brief Computes a function using a subset of processors as defined in the split group in @a aGroupCommunicator. Only
 /// the group with color 0 will evaluate the function, and the result is broadcast to all ranks on @a
 /// aParentBroadcastRank.
 /// @note @a aGroupCommunicator can be provided by group_split_communicator.
+/// @throw `std::runtime_error` Throws on all ranks if an exception is thrown during the execution of @a aFunction.
 template <typename F, typename... Args>
-    requires kHasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
+    requires HasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
              std::is_default_constructible_v<std::invoke_result_t<F, const boost::mpi::communicator&, Args...>>
 [[nodiscard]] auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
                                          int aParentBroadcastRank,
@@ -57,13 +61,21 @@ template <typename F, typename... Args>
 /// @note This can be used to handle the case in which some subset of ranks in a collective operation may throw.
 ///  When that happens, any subsequent blocking MPI operations may result in a hang since some ranks will be processing
 ///  exceptions and some will advance as normal.
-/// @note This is only implemented for value-type return types. It is not implemented for `void` or reference-types.
+/// @note This is only implemented for value-type return types. It is not implemented for reference-types.
 ///  Returning reference-types requires some additional care since some ranks may not return anything if they throw.
+/// @throw `std::runtime_error` Throws on all ranks if an exception is thrown during the execution of @a aOperation.
 template <typename Function, typename... Args>
-    requires kHasValueTypeReturn<Function, Args...>
+    requires HasValueTypeReturn<Function, Args...>
 [[nodiscard]] auto mpi_collective_try(const boost::mpi::communicator& aCommunicator,
                                       const Function& aOperation,
                                       Args&&... aArgs);
+
+/// @brief Executes @a aOperation on all ranks inside a `try/catch` block. If any rank throws, this will then throw
+/// on all ranks, though the exception type may be different.
+/// @throw `std::runtime_error` Throws on all ranks if an exception is thrown during the execution of @a aOperation.
+template <typename Function, typename... Args>
+    requires HasVoidReturn<Function, Args...>
+void mpi_collective_try(const boost::mpi::communicator& aCommunicator, const Function& aOperation, Args&&... aArgs);
 
 namespace customization
 {
@@ -97,15 +109,22 @@ template <typename F, typename... Args>
 void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFunction, Args&&... aArgs)
 {
     aCommunicator.barrier();
-    if (aCommunicator.rank() == 0)
-    {
-        aFunction(std::forward<Args>(aArgs)...);
-    }
+    mpi_collective_try(
+        aCommunicator,
+        [tRank = aCommunicator.rank()](const F& aFunction, Args&&... aArgs)
+        {
+            constexpr auto tRootRank = 0;
+            if (tRank == tRootRank)
+            {
+                aFunction(std::forward<Args>(aArgs)...);
+            }
+        },
+        aFunction, std::forward<Args>(aArgs)...);
     aCommunicator.barrier();
 }
 
 template <typename F, typename... Args>
-    requires kHasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
+    requires HasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
              std::is_default_constructible_v<std::invoke_result_t<F, const boost::mpi::communicator&, Args...>>
 auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
                            const int aParentBroadcastRank,
@@ -129,8 +148,22 @@ auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
     return customization::group_synchronized_object(std::move(tResult), aGroupCommunicator, aParentBroadcastRank);
 }
 
+namespace detail
+{
+/// @brief Returns a new exception message incorporating @a aRank and a previous exception @a aException.
+[[nodiscard]] auto exception_message(int aRank, const std::exception& aException) -> std::string;
+
+/// @brief Returns an exception message incorporating @a aRank and assumes an unknown exception type was caught.
+[[nodiscard]] auto exception_message(int aRank) -> std::string;
+
+/// @brief Coordinates all ranks on @a aCommunicator to throw if @a aExceptionMessage has a value.
+/// @throw `std::runtime_error` Throws on all ranks if @a aExceptionMessage is not empty on any rank.
+void handle_parallel_exception(const boost::mpi::communicator& aCommunicator,
+                               const std::optional<std::string>& aExceptionMessage);
+}  // namespace detail
+
 template <typename Function, typename... Args>
-    requires kHasValueTypeReturn<Function, Args...>
+    requires HasValueTypeReturn<Function, Args...>
 auto mpi_collective_try(const boost::mpi::communicator& aCommunicator, const Function& aOperation, Args&&... aArgs)
 {
     using ReturnType = decltype(aOperation(std::forward<Args>(aArgs)...));
@@ -143,25 +176,35 @@ auto mpi_collective_try(const boost::mpi::communicator& aCommunicator, const Fun
     }
     catch (const std::exception& tException)
     {
-        const auto tRank = aCommunicator.rank();
-        tExceptionMessage =
-            std::format("Encountered an exception on rank {} with message: {}\n", tRank, tException.what());
+        tExceptionMessage = detail::exception_message(aCommunicator.rank(), tException);
     }
     catch (...)
     {
-        const auto tRank = aCommunicator.rank();
-        tExceptionMessage =
-            std::format("Encountered an uknown exception in an MPI collective operation on rank {}.", tRank);
+        tExceptionMessage = detail::exception_message(aCommunicator.rank());
     }
-
-    if (boost::mpi::all_reduce(aCommunicator, tExceptionMessage.has_value(), std::logical_or{}))
-    {
-        const auto tNewExceptionMessage = tExceptionMessage.value_or(
-            std::string{"Another rank encountered an exception in an MPI collective operation."});
-        throw Exception{tNewExceptionMessage};
-    }
+    detail::handle_parallel_exception(aCommunicator, tExceptionMessage);
 
     return std::move(tFunctionReturn).value();
+}
+
+template <typename Function, typename... Args>
+    requires HasVoidReturn<Function, Args...>
+void mpi_collective_try(const boost::mpi::communicator& aCommunicator, const Function& aOperation, Args&&... aArgs)
+{
+    auto tExceptionMessage = std::optional<std::string>{};
+    try
+    {
+        aOperation(std::forward<Args>(aArgs)...);
+    }
+    catch (const std::exception& tException)
+    {
+        tExceptionMessage = detail::exception_message(aCommunicator.rank(), tException);
+    }
+    catch (...)
+    {
+        tExceptionMessage = detail::exception_message(aCommunicator.rank());
+    }
+    detail::handle_parallel_exception(aCommunicator, tExceptionMessage);
 }
 
 }  // namespace plato::utilities
