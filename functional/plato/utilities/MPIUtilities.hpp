@@ -111,12 +111,12 @@ void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFu
     aCommunicator.barrier();
     mpi_collective_try(
         aCommunicator,
-        [tRank = aCommunicator.rank()](const F& aFunction, Args&&... aArgs)
+        [tRank = aCommunicator.rank()](const F& aLambdaFunction, Args&&... aLambdaArgs)
         {
             constexpr auto tRootRank = 0;
             if (tRank == tRootRank)
             {
-                aFunction(std::forward<Args>(aArgs)...);
+                aLambdaFunction(std::forward<Args>(aLambdaArgs)...);
             }
         },
         aFunction, std::forward<Args>(aArgs)...);
@@ -135,14 +135,16 @@ auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
 
     auto tResult = mpi_collective_try(
         aGroupCommunicator.mParentCommunicator,
-        [](const MPIGroupCommunicator& aGroupCommunicator, const F& aFunction, auto&&... aArgs) -> ReturnType
+        [](const MPIGroupCommunicator& aLambdaGroupCommunicator, const F& aLambdaFunction,
+           auto&&... aLambdaArgs) -> ReturnType
         {
-            auto tResult = ReturnType{};
-            if (aGroupCommunicator.mGroupColor.mValue == 0)
+            auto tLambdaResult = ReturnType{};
+            if (aLambdaGroupCommunicator.mGroupColor.mValue == 0)
             {
-                tResult = aFunction(aGroupCommunicator.mSplitCommunicator, std::forward<Args>(aArgs)...);
+                tLambdaResult =
+                    aLambdaFunction(aLambdaGroupCommunicator.mSplitCommunicator, std::forward<Args>(aLambdaArgs)...);
             }
-            return tResult;
+            return tLambdaResult;
         },
         aGroupCommunicator, aFunction, std::forward<Args>(aArgs)...);
     return customization::group_synchronized_object(std::move(tResult), aGroupCommunicator, aParentBroadcastRank);
