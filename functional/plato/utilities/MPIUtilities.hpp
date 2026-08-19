@@ -33,23 +33,23 @@ struct MPIGroupCommunicator
 [[nodiscard]] auto group_split_communicator(const boost::mpi::communicator& aParentCommunicator,
                                             std::size_t aNumberOfProcessors) -> MPIGroupCommunicator;
 
-/// @brief Computes a function using a subset of processors as defined in the split group in @a aGroupCommunicator. Only
-/// the group with color 0 will evaluate the function, and the result is broadcast to all ranks on @a
-/// aParentBroadcastRank.
-/// @note @a aGroupCommunicator can be provided by group_split_communicator.
-template <typename F, typename... Args>
-    requires std::is_invocable_v<F, boost::mpi::communicator, Args...> &&
-             std::is_default_constructible_v<std::invoke_result_t<F, boost::mpi::communicator, Args...>>
-[[nodiscard]] auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
-                                         int aParentBroadcastRank,
-                                         const F& aFunction,
-                                         Args&&... aArgs);
-
 /// @brief Helper variable template for checking if a function has a value-type return.
 template <typename Function, typename... Args>
 constexpr inline auto kHasValueTypeReturn =
     std::is_invocable_v<Function, Args...> && !std::is_void_v<std::invoke_result_t<Function, Args...>> &&
     !std::is_reference_v<std::invoke_result_t<Function, Args...>>;
+
+/// @brief Computes a function using a subset of processors as defined in the split group in @a aGroupCommunicator. Only
+/// the group with color 0 will evaluate the function, and the result is broadcast to all ranks on @a
+/// aParentBroadcastRank.
+/// @note @a aGroupCommunicator can be provided by group_split_communicator.
+template <typename F, typename... Args>
+    requires kHasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
+             std::is_default_constructible_v<std::invoke_result_t<F, const boost::mpi::communicator&, Args...>>
+[[nodiscard]] auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
+                                         int aParentBroadcastRank,
+                                         const F& aFunction,
+                                         Args&&... aArgs);
 
 /// @brief Executes @a aOperation on all ranks inside a `try/catch` block. If any rank throws, this will then throw
 /// on all ranks, though the exception type may be different.
@@ -105,8 +105,8 @@ void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFu
 }
 
 template <typename F, typename... Args>
-    requires std::is_invocable_v<F, boost::mpi::communicator, Args...> &&
-             std::is_default_constructible_v<std::invoke_result_t<F, boost::mpi::communicator, Args...>>
+    requires kHasValueTypeReturn<F, const boost::mpi::communicator&, Args...> &&
+             std::is_default_constructible_v<std::invoke_result_t<F, const boost::mpi::communicator&, Args...>>
 auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
                            const int aParentBroadcastRank,
                            const F& aFunction,
@@ -114,11 +114,18 @@ auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
 {
     using ReturnType = std::invoke_result_t<F, boost::mpi::communicator, Args...>;
 
-    auto tResult = ReturnType{};
-    if (aGroupCommunicator.mGroupColor.mValue == 0)
-    {
-        tResult = aFunction(aGroupCommunicator.mSplitCommunicator, std::forward<Args>(aArgs)...);
-    }
+    auto tResult = mpi_collective_try(
+        aGroupCommunicator.mParentCommunicator,
+        [](const MPIGroupCommunicator& aGroupCommunicator, const F& aFunction, auto&&... aArgs) -> ReturnType
+        {
+            auto tResult = ReturnType{};
+            if (aGroupCommunicator.mGroupColor.mValue == 0)
+            {
+                tResult = aFunction(aGroupCommunicator.mSplitCommunicator, std::forward<Args>(aArgs)...);
+            }
+            return tResult;
+        },
+        aGroupCommunicator, aFunction, std::forward<Args>(aArgs)...);
     return customization::group_synchronized_object(std::move(tResult), aGroupCommunicator, aParentBroadcastRank);
 }
 

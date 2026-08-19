@@ -75,6 +75,21 @@ TEST(MPIUtilities, ComputeOnRootGroup)
     }
 }
 
+TEST(MPIUtilities, ComputeOnRootGroupWithFunctionThatThrows)
+{
+    const auto tParentCommunicator = boost::mpi::communicator{};
+    const auto tGroupCommunicator = group_split_communicator(tParentCommunicator, tParentCommunicator.size() / 2);
+    constexpr auto tParentCommunicatorBroadcastRank = 0;
+    const auto tFunction = [](const boost::mpi::communicator&)
+    {
+        throw std::runtime_error{"Whoops"};
+        return 0;
+    };
+    EXPECT_THROW([[maybe_unused]] const auto tResult =
+                     compute_on_root_group(tGroupCommunicator, tParentCommunicatorBroadcastRank, tFunction),
+                 std::runtime_error);
+}
+
 TEST(MPIUtilities, GroupSynchronizedDouble)
 {
     const auto tParentCommunicator = boost::mpi::communicator{};
