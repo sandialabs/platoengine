@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
+#include <array>
 #include <boost/mpi/communicator.hpp>
 #include <cmath>
 #include <cstddef>
