@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/components/ComponentType.hpp"
 #include "plato/core/Aggregate.hpp"
 #include "plato/core/ParallelFunction.hpp"

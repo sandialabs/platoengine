@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <functional>
 #include <ranges>
+#include <stdexcept>
 
 #include "plato/utilities/MPIUtilities.hpp"
 
@@ -28,6 +30,12 @@ TEST(MPIUtilities, ExecuteOnRoot)
     {
         EXPECT_EQ(tInteger, tOriginal);
     }
+}
+
+TEST(MPIUtilities, ExecuteOnRootWithFunctionThatThrows)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_THROW(execute_on_root(tCommunicator, []() { throw std::domain_error{"Oh my."}; }), std::runtime_error);
 }
 
 TEST(MPIUtilities, GroupSplitCommunicator)
@@ -74,6 +82,21 @@ TEST(MPIUtilities, ComputeOnRootGroup)
     }
 }
 
+TEST(MPIUtilities, ComputeOnRootGroupWithFunctionThatThrows)
+{
+    const auto tParentCommunicator = boost::mpi::communicator{};
+    const auto tGroupCommunicator = group_split_communicator(tParentCommunicator, tParentCommunicator.size() / 2);
+    constexpr auto tParentCommunicatorBroadcastRank = 0;
+    const auto tFunction = [](const boost::mpi::communicator&)
+    {
+        throw std::runtime_error{"Whoops"};
+        return 0;
+    };
+    EXPECT_THROW([[maybe_unused]] const auto tResult =
+                     compute_on_root_group(tGroupCommunicator, tParentCommunicatorBroadcastRank, tFunction),
+                 std::runtime_error);
+}
+
 TEST(MPIUtilities, GroupSynchronizedDouble)
 {
     const auto tParentCommunicator = boost::mpi::communicator{};
@@ -91,6 +114,84 @@ TEST(MPIUtilities, GroupSynchronizedDouble)
                                                                           .mGroupColor = ColorNamedType{tGroupColor}},
                                                      tParentCommunicatorBroadcastRank);
         EXPECT_EQ(tReceivedPayload, tPayload);
+    }
+}
+
+TEST(MPIUtilities, MPICollectiveTryNoThrow)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+    const auto tMPIOperation = [](const int aRank) { return aRank; };
+    const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank);
+    const auto tAllRanksSummed = boost::mpi::all_reduce(tCommunicator, tResult, std::plus{});
+
+    const auto tNumberOfRanks = tCommunicator.size();
+    const auto tExpected = tNumberOfRanks * (tNumberOfRanks - 1) / 2;
+    EXPECT_EQ(tAllRanksSummed, tExpected);
+}
+
+TEST(MPIUtilities, MPICollectiveTryThrows)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+
+    {
+        const auto tMPIOperation = [](const int aRank)
+        {
+            if (aRank == 0)
+            {
+                throw std::runtime_error{"Testing throw only on rank 0"};
+            }
+            return aRank;
+        };
+        EXPECT_THROW([[maybe_unused]] const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank),
+                     std::runtime_error)
+            << "Throws std::runtime_error";
+    }
+    {
+        const auto tMPIOperation = [](const int aRank)
+        {
+            if (aRank == 0)
+            {
+                throw aRank;
+            }
+            return aRank;
+        };
+        EXPECT_THROW([[maybe_unused]] const auto tResult = mpi_collective_try(tCommunicator, tMPIOperation, tRank),
+                     std::runtime_error)
+            << "Throws int, why would anyone do that?";
+    }
+}
+
+namespace
+{
+struct Shoe
+{
+};
+}  // namespace
+
+TEST(MPIUtilities, MPICollectiveTryVoidReturn)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+    {
+        using Function = std::function<void()>;
+        const auto tFunction =
+            tRank == 0 ? Function{[]() { throw std::logic_error{"Testing throw only on rank 0"}; }} : Function{[]() {}};
+        EXPECT_THROW(mpi_collective_try(tCommunicator, tFunction), std::runtime_error) << "Throws std::runtime_error";
+    }
+    {
+        using Function = std::function<void()>;
+        const auto tFunction = tRank == 0 ? Function{[]() { throw Shoe{}; }} : Function{[]() {}};
+        EXPECT_THROW(mpi_collective_try(tCommunicator, tFunction), std::runtime_error)
+            << "Who throws a shoe, honestly?";
+    }
+    {
+        constexpr auto tValueToAssign = 187;
+        auto tValueToBeAssigned = 0;
+        const auto tMPIOperation = [&tValueToBeAssigned]() { tValueToBeAssigned = tValueToAssign; };
+        mpi_collective_try(tCommunicator, tMPIOperation);
+        EXPECT_EQ(tValueToBeAssigned, tValueToAssign) << "No throw";
     }
 }
 
