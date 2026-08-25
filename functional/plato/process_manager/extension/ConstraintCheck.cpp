@@ -1,6 +1,5 @@
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 
-#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <optional>
@@ -76,8 +75,7 @@ ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aI
       mInitialDirectionMagnitude{constraint_check_input(aInput).initial_direction_magnitude.value()},
       mStepSizeReductionFactor{constraint_check_input(aInput).step_size_reduction_factor.value()},
       mDirectionVectorType(constraint_check_input(aInput).direction_vector_type.value()),
-      mSeed(constraint_check_input(aInput).random_direction_seed.value_or(
-          std::chrono::system_clock::now().time_since_epoch().count()))
+      mSeed(constraint_check_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
 {
 }
 

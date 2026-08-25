@@ -92,24 +92,23 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
     -> std::vector<third_party_integration::rol::ROLConstraint>
 {
     std::vector<third_party_integration::rol::ROLConstraint> tROLConstraints;
-    std::transform(
-        aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
-        [&aProblem](const auto& aConstraintData)
-        {
-            const auto tComposedVectorConstraint =
-                compose_geometry_with_vector_constraint(aConstraintData, aProblem.mGeometry);
+    std::transform(aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
+                   [&aProblem](const auto& aConstraintData)
+                   {
+                       const auto tComposedVectorConstraint =
+                           compose_geometry_with_vector_constraint(aConstraintData, aProblem.mGeometry);
 
-            const auto tConstraintSize =
-                tComposedVectorConstraint.mConstraintFunction
-                    .template evaluate<core::evaluation::kFunction>(aProblem.mGeometry.mInitialGuess)
-                    .size();
+                       const auto tConstraintSize =
+                           tComposedVectorConstraint.mConstraintFunction
+                               .template evaluate<core::evaluation::kFunction>(aProblem.mGeometry.mInitialGuess)
+                               .size();
 
-            return third_party_integration::rol::ROLConstraint{
-                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
-                kConstraintTypeConversion.at(aConstraintData.mConstraintType),
-                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
-                    tComposedVectorConstraint.mConstraintFunction)};
-        });
+                       return third_party_integration::rol::ROLConstraint{
+                           aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
+                           kConstraintTypeConversion.at(aConstraintData.mConstraintType),
+                           std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
+                               tComposedVectorConstraint.mConstraintFunction)};
+                   });
     return tROLConstraints;
 }
 
@@ -150,8 +149,8 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem,
     return {tROLProblem, tControls};
 }
 
-auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aROLProblem)
-    -> ROL::Solver<double>
+auto make_rol_solver(Teuchos::ParameterList& aROLOptions,
+                     const ROL::Ptr<ROL::Problem<double>>& aROLProblem) -> ROL::Solver<double>
 {
     return ROL::Solver<double>{aROLProblem, aROLOptions};
 }
@@ -175,6 +174,12 @@ auto make_optimization_parameters(const library::ValidatedProcessManagerInput& a
     write_parameters(tRolParameters, tParameters);
 
     return tParameters;
+}
+
+auto fixed_seed_value() -> unsigned int
+{
+    constexpr auto tFixedSeed = 666U;
+    return tFixedSeed;
 }
 
 }  // namespace plato::process_manager::extension
