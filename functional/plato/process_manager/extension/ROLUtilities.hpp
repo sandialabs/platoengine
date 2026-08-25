@@ -58,6 +58,9 @@ namespace plato::process_manager::extension
 [[nodiscard]] auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters;
 
+/// @brief Return the same fixed seed value for random number generation.
+[[nodiscard]] auto fixed_seed_value() -> unsigned int;
+
 }  // namespace plato::process_manager::extension
 
 #endif
