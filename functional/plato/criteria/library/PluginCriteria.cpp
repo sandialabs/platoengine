@@ -13,6 +13,7 @@
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/SystemLogger.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -107,16 +108,17 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
 }
 }  // namespace
 
-auto register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories) -> std::size_t
+auto register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories) -> std::vector<std::string>
 {
     const auto tAppConfigurations = services::app_configurations(aSearchDirectories);
-    auto tNumberOfRegisteredApps = std::size_t{0};
+    auto tRegisteredAppNames = utilities::reserved_container<std::vector<std::string>>(tAppConfigurations.size());
+
     for (const auto& tAppConfiguration : tAppConfigurations)
     {
         if (std::filesystem::exists(services::shared_library_path(tAppConfiguration)))
         {
             register_all_criteria(tAppConfiguration);
-            ++tNumberOfRegisteredApps;
+            tRegisteredAppNames.push_back(tAppConfiguration.mConfiguration.mName);
         }
         else
         {
@@ -125,7 +127,7 @@ auto register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirec
                 tAppConfiguration.mConfiguration.mName, "\", was not found and will not be available."));
         }
     }
-    return tNumberOfRegisteredApps;
+    return tRegisteredAppNames;
 }
 
 }  // namespace plato::criteria::library
