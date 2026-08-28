@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <ranges>
@@ -106,7 +107,7 @@ template <typename SharedLibWriter>
 
 TEST(PluginCriteria, NothingRegisteredForEmptyPaths)
 {
-    const auto tNumberOfRegisteredApps = register_plugin_apps({});
+    const auto tNumberOfRegisteredApps = register_plugin_apps({}).size();
     EXPECT_EQ(tNumberOfRegisteredApps, 0U);
 }
 
@@ -115,8 +116,8 @@ TEST(PluginCriteria, NonexistentSharedLibrary)
     const auto tTheBlobAppName = std::string{"the-blob"};
     const auto tConfigurationTempDirectory = create_test_app_configurations({{tTheBlobAppName, {kParallelScalar}}});
     const auto tNumKnownConfigurations = services::app_configurations({tConfigurationTempDirectory.directory()}).size();
-    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
-    EXPECT_NE(tNumRegistered, tNumKnownConfigurations);
+    const auto tRegisteredNames = register_plugin_apps({tConfigurationTempDirectory.directory()});
+    EXPECT_NE(tRegisteredNames.size(), tNumKnownConfigurations);
 
     const auto tFunctionName = library::criterion_registration_name(input_parser::AppName{tTheBlobAppName},
                                                                     input_parser::CriterionName{kTestCriterionName});
@@ -145,8 +146,11 @@ TEST(PluginCriteria, RegisterApps)
                                                               {tMummyAppName, {kSerialScalar}},
                                                               {tZombieAppName, {kSerialVector}},
                                                               {tDraculaAppName, {kParallelVector}}});
-    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
-    EXPECT_EQ(tNumRegistered, 4U);
+    auto tRegisteredNames = register_plugin_apps({tConfigurationTempDirectory.directory()});
+    std::sort(tRegisteredNames.begin(), tRegisteredNames.end());
+    ASSERT_EQ(tRegisteredNames.size(), 4U);
+    EXPECT_EQ(tRegisteredNames.front(), tDraculaAppName);
+    EXPECT_EQ(tRegisteredNames.back(), tZombieAppName);
 
     const auto tCheckIsCriterionRegistered = [](const std::string_view aFunctionName,
                                                 const library::CriterionTraits aRegisteredTraits,
@@ -204,7 +208,7 @@ TEST(PluginCriteria, ValidateValidApps)
                                                               {tMedusaAppName, {kParallelScalar}},
                                                               {tItAppName, {kSerialVector}},
                                                               {tThingAppName, {kParallelVector}}});
-    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
+    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()}).size();
     EXPECT_EQ(tNumRegistered, 4U);
 
     auto tCriteria = input_parser::objective{};
