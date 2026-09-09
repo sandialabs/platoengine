@@ -48,6 +48,9 @@ constexpr auto kTemporaryMeshFile = std::string_view{"tmp.exo"};
 
 constexpr double kCDFEMEdgeTolerance = 1.0e-3;
 
+using ParentNodesMap = std::unordered_map<std::size_t, std::vector<std::size_t>>;
+using SensitivityValuesMap = std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>;
+
 using tpik::test_utilities::KrinoTestFixture;
 
 void initialize_krino()
@@ -139,13 +142,11 @@ class TetBlock1x2x1KrinoFixture : public tpik::test_utilities::KrinoTestFixture
     }
 };
 
-void test_krino_sensitivities_against_expected(
-    KrinoWrapper aWrapper,
-    const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
-    const std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>&
-        aExpectedSensitivityValues,
-    const plato::test_utilities::TestContext& aTestContext,
-    const double aTolerance = 1.0e-15)
+void test_krino_sensitivities_against_expected(KrinoWrapper aWrapper,
+                                               const ParentNodesMap& aExpectedParentNodes,
+                                               const SensitivityValuesMap& aExpectedSensitivityValues,
+                                               const plato::test_utilities::TestContext& aTestContext,
+                                               const double aTolerance = 1.0e-15)
 {
     const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
     aWrapper.writeCutMesh(tCutFilename);
@@ -156,8 +157,7 @@ void test_krino_sensitivities_against_expected(
         std::views::transform(
             [](const auto& aInterfaceNode)
             { return std::make_pair(aInterfaceNode.first, aInterfaceNode.second.mBackgroundMeshNodeIDs); });
-    const auto tParentNodes =
-        std::unordered_map<std::size_t, std::vector<std::size_t>>{tParentNodesToMap.begin(), tParentNodesToMap.end()};
+    const auto tParentNodes = ParentNodesMap{tParentNodesToMap.begin(), tParentNodesToMap.end()};
     EXPECT_EQ(tParentNodes, aExpectedParentNodes) << aTestContext;
 
     const auto tSensitivityValuesToMap =
@@ -166,8 +166,7 @@ void test_krino_sensitivities_against_expected(
                                  return std::make_pair(aInterfaceNode.first, aInterfaceNode.second.mNodalSensitivities);
                              });
     const auto tComputedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            tSensitivityValuesToMap.begin(), tSensitivityValuesToMap.end()};
+        SensitivityValuesMap{tSensitivityValuesToMap.begin(), tSensitivityValuesToMap.end()};
     for (const auto& [tCutMeshNode, tExpectedSensitivityVector] : aExpectedSensitivityValues)
     {
         const auto tComputedSensitivityValuesIterator = tComputedSensitivityValues.find(tCutMeshNode);
@@ -188,13 +187,11 @@ void test_expected_sensitivity_information_near_interface_above_cdfem_edge_toler
 {
     ASSERT_GE(aOffset, kCDFEMEdgeTolerance);
     const double tOneMinusOffset = 1.0 - aOffset;
-    const auto tExpectedParentNodes =
-        std::unordered_map<std::size_t, std::vector<std::size_t>>{{8, {4, 1}}, {9, {5, 1}}, {2, {2, 4}}};
+    const auto tExpectedParentNodes = ParentNodesMap{{8, {4, 1}}, {9, {5, 1}}, {2, {2, 4}}};
     const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {8, {{aOffset, aOffset, 0.0}, {tOneMinusOffset, tOneMinusOffset, 0.0}}},
-            {9, {{0.0, aOffset, 0.0}, {0.0, tOneMinusOffset, 0.0}}},
-            {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
+        SensitivityValuesMap{{8, {{aOffset, aOffset, 0.0}, {tOneMinusOffset, tOneMinusOffset, 0.0}}},
+                             {9, {{0.0, aOffset, 0.0}, {0.0, tOneMinusOffset, 0.0}}},
+                             {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext);
 }
@@ -202,14 +199,13 @@ void test_expected_sensitivity_information_near_interface_above_cdfem_edge_toler
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
     const double aOffset,
     KrinoWrapper aWrapper,
-    const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
+    const ParentNodesMap& aExpectedParentNodes,
     const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
     const double tOneMinusOffset = 1.0 - aOffset;
-    const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
+    const auto tExpectedSensitivityValues = SensitivityValuesMap{
+        {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), aExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext);
 }
@@ -217,13 +213,12 @@ void test_expected_sensitivity_information_near_interface_below_cdfem_edge_toler
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
     const double aOffset,
     KrinoWrapper aWrapper,
-    const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
+    const ParentNodesMap& aExpectedParentNodes,
     const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
     const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}};
+        SensitivityValuesMap{{1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}};
     test_krino_sensitivities_against_expected(std::move(aWrapper), aExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext);
 }
@@ -235,14 +230,12 @@ void test_expected_sensitivity_information_near_interface_3d(const double aOffse
 {
     const double tOneMinusOffset = 1.0 - aOffset;
 
-    const auto tExpectedParentNodes =
-        std::unordered_map<std::size_t, std::vector<std::size_t>>{{3, {3, 1}}, {4, {4, 2}}, {9, {9, 7}}, {10, {10, 8}}};
+    const auto tExpectedParentNodes = ParentNodesMap{{3, {3, 1}}, {4, {4, 2}}, {9, {9, 7}}, {10, {10, 8}}};
     const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {3, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
-            {4, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
-            {9, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
-            {10, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}}};
+        SensitivityValuesMap{{3, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
+                             {4, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
+                             {9, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
+                             {10, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}}};
 
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext, aTolerance);
@@ -256,20 +249,19 @@ void test_expected_sensitivity_information_near_interface_no_snapping_above_cdfe
 {
     const double tOneMinusOffset = 1.0 - aOffset;
 
-    const auto tExpectedParentNodes = std::unordered_map<std::size_t, std::vector<std::size_t>>{
-        {15, {1, 10}}, {13, {1, 4}},  {14, {1, 3}},  {16, {1, 9}}, {17, {9, 7}},
-        {18, {7, 10}}, {19, {8, 10}}, {20, {2, 10}}, {21, {2, 4}}};
-    const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {15, {{-aOffset, -aOffset, -aOffset}, {-tOneMinusOffset, -tOneMinusOffset, -tOneMinusOffset}}},
-            {13, {{-aOffset, -aOffset, 0.0}, {-tOneMinusOffset, -tOneMinusOffset, 0.0}}},
-            {14, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}},
-            {16, {{0.0, -aOffset, -aOffset}, {0.0, -tOneMinusOffset, -tOneMinusOffset}}},
-            {17, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
-            {18, {{-aOffset, -aOffset, 0.0}, {-tOneMinusOffset, -tOneMinusOffset, 0.0}}},
-            {19, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}},
-            {20, {{0.0, -aOffset, -aOffset}, {0.0, -tOneMinusOffset, -tOneMinusOffset}}},
-            {21, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}}};
+    const auto tExpectedParentNodes =
+        ParentNodesMap{{15, {1, 10}}, {13, {1, 4}},  {14, {1, 3}},  {16, {1, 9}}, {17, {9, 7}},
+                       {18, {7, 10}}, {19, {8, 10}}, {20, {2, 10}}, {21, {2, 4}}};
+    const auto tExpectedSensitivityValues = SensitivityValuesMap{
+        {15, {{-aOffset, -aOffset, -aOffset}, {-tOneMinusOffset, -tOneMinusOffset, -tOneMinusOffset}}},
+        {13, {{-aOffset, -aOffset, 0.0}, {-tOneMinusOffset, -tOneMinusOffset, 0.0}}},
+        {14, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}},
+        {16, {{0.0, -aOffset, -aOffset}, {0.0, -tOneMinusOffset, -tOneMinusOffset}}},
+        {17, {{0.0, -tOneMinusOffset, 0.0}, {0.0, -aOffset, 0.0}}},
+        {18, {{-aOffset, -aOffset, 0.0}, {-tOneMinusOffset, -tOneMinusOffset, 0.0}}},
+        {19, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}},
+        {20, {{0.0, -aOffset, -aOffset}, {0.0, -tOneMinusOffset, -tOneMinusOffset}}},
+        {21, {{0.0, -aOffset, 0.0}, {0.0, -tOneMinusOffset, 0.0}}}};
 
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext, aTolerance);
@@ -278,14 +270,11 @@ void test_expected_sensitivity_information_near_interface_no_snapping_above_cdfe
 void test_expected_sensitivity_information_near_interface_no_snapping_below_cdfem_edge_tolerance(
     KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext, const double aTolerance = 1.0e-15)
 {
-    const auto tExpectedParentNodes =
-        std::unordered_map<std::size_t, std::vector<std::size_t>>{{3, {3, 1}}, {4, {4, 1}}, {9, {9, 1}}, {10, {10, 1}}};
-    const auto tExpectedSensitivityValues =
-        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
-            {3, {{0.0, -1.0, 0.0}, {0.0, 0.0, 0.0}}},
-            {4, {{-1.0, -1.0, 0.0}, {0.0, 0.0, 0.0}}},
-            {9, {{0.0, -1.0, -1.0}, {0.0, 0.0, 0.0}}},
-            {10, {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}}}};
+    const auto tExpectedParentNodes = ParentNodesMap{{3, {3, 1}}, {4, {4, 1}}, {9, {9, 1}}, {10, {10, 1}}};
+    const auto tExpectedSensitivityValues = SensitivityValuesMap{{3, {{0.0, -1.0, 0.0}, {0.0, 0.0, 0.0}}},
+                                                                 {4, {{-1.0, -1.0, 0.0}, {0.0, 0.0, 0.0}}},
+                                                                 {9, {{0.0, -1.0, -1.0}, {0.0, 0.0, 0.0}}},
+                                                                 {10, {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}}}};
 
     test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext, aTolerance);
@@ -592,8 +581,7 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
                          "special treatment of sensitivities."));
     }
 
-    const auto tExpectedParentNodesInterfaceBelowTolerance =
-        std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 5}}, {2, {2, 4}}};
+    const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     {
         constexpr double tOffset = 1.0e-4;
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
