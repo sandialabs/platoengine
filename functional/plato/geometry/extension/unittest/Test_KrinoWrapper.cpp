@@ -651,55 +651,56 @@ TEST_F(TetBlock1x2x1KrinoFixture, PlaneInterfaceNearBackground3D)
 
     {
         const auto tOffsets = std::array{1.0e-1, 1.0e-4, 1.0e-15};
-        const auto tContexts = std::array{
-            TEST_CONTEXT("Offset 1E-1 - Sensitivity values should match to 4 ULPs (~9E-16)."),
-            TEST_CONTEXT(
-                "Offset 1E-4 - Sensitivity values may not match to 4 ULPs (~5E-20) but should match to 1E-16."),
-            TEST_CONTEXT(
-                "Offset 1E-15 - Sensitivity values may not match to 4 ULPs (~7E-31) but should match to 1E-16.")};
+        const auto tContextStrings = std::array{
+            std::string{"Offset 1E-1 - Sensitivity values should match to 4 ULPs (~9E-16)."},
+            std::string{"Offset 1E-4 - Sensitivity values may not match to 4 ULPs (~5E-20) but should match to 1E-16."},
+            std::string{
+                "Offset 1E-15 - Sensitivity values may not match to 4 ULPs (~7E-31) but should match to 1E-16."}};
+
         constexpr double tTolerance = 1.0e-16;
-        for (const auto& [tOffset, tContext] : utilities::Zip{tOffsets, tContexts})
+        for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
         {
             test_expected_sensitivity_information_near_interface_3d(
-                tOffset, tMakeWrapperWithPlane(tOffset, tpik::SnappingParameters{}), tContext, tTolerance);
+                tOffset, tMakeWrapperWithPlane(tOffset, tpik::SnappingParameters{}), TEST_CONTEXT(tContextString),
+                tTolerance);
         }
     }
 
     {
         const auto tOffsets = std::array{1.0e-1, 1.001e-3};
-        const auto tContexts = std::array{
-            TEST_CONTEXT("Offset 1E-1 no snapping - Sensitivity values should exist for all edges and match to 4 ULPs "
-                         "(~9E-16)."),
-            TEST_CONTEXT("Offset 1.001E-3 no snapping - Offset is just above cdfem edge tolerance. Sensitivity values "
-                         "should exist for all edges and should match to 1E-15.")};
+        const auto tContextStrings = std::array{
+            std::string{"Offset 1E-1 no snapping - Sensitivity values should exist for all edges and match to 4 ULPs "
+                        "(~9E-16)."},
+            std::string{"Offset 1.001E-3 no snapping - Offset is just above cdfem edge tolerance. Sensitivity values "
+                        "should exist for all edges and should match to 1E-15."}};
         constexpr double tTolerance = 1.0e-15;
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        for (const auto& [tOffset, tContext] : utilities::Zip{tOffsets, tContexts})
+        for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
         {
             test_expected_sensitivity_information_near_interface_no_snapping_above_cdfem_edge_tolerance(
-                tOffset, tMakeWrapperWithPlane(tOffset, tSnappingParameters), tContext, tTolerance);
+                tOffset, tMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
         }
     }
 
     {
         const auto tOffsets = std::array{9.999e-4, 1.0e-15};
-        const auto tContexts = std::array{
-            TEST_CONTEXT("Offset 9.999E-4 no snapping - Offset is just below cdfem edge tolerance. Sensitivity values "
-                         "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
-                         "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
-                         "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
-                         "plane also have values of 1, which could be problematic."),
-            TEST_CONTEXT("Offset 1.0E-15 no snapping - Offset is below cdfem edge tolerance. Sensitivity values "
-                         "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
-                         "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
-                         "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
-                         "plane also have values of 1, which could be problematic.")};
+        const auto tContextStrings = std::array{
+            std::string{"Offset 9.999E-4 no snapping - Offset is just below cdfem edge tolerance. Sensitivity values "
+                        "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
+                        "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
+                        "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
+                        "plane also have values of 1, which could be problematic."},
+            std::string{"Offset 1.0E-15 no snapping - Offset is below cdfem edge tolerance. Sensitivity values "
+                        "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
+                        "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
+                        "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
+                        "plane also have values of 1, which could be problematic."}};
         constexpr double tTolerance = 1.0e-16;
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        for (const auto& [tOffset, tContext] : utilities::Zip{tOffsets, tContexts})
+        for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
         {
             test_expected_sensitivity_information_near_interface_no_snapping_below_cdfem_edge_tolerance(
-                tMakeWrapperWithPlane(tOffset, tSnappingParameters), tContext, tTolerance);
+                tMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
         }
     }
 }
