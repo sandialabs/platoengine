@@ -13,4 +13,8 @@ target_include_directories(PlatoFunctionalSNOPT PRIVATE ${SNOPT_INC_DIR})
 if(UNIT_TESTING)
     create_plato_unittester(PlatoFunctionalSNOPT "unittest;test_utilities")
     target_include_directories(PlatoFunctionalSNOPT_UnitTester PRIVATE ${SNOPT_INC_DIR})
+
+    set(NUM_RANKS_FOR_TEST 4)
+    create_plato_parallel_unittester(PlatoFunctionalSNOPT "parallel_unittest;test_utilities" ${NUM_RANKS_FOR_TEST} "")
+    target_include_directories(PlatoFunctionalSNOPT_ParallelUnitTester PRIVATE ${SNOPT_INC_DIR})
 endif()

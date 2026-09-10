@@ -1,6 +1,7 @@
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 
 #include <algorithm>
+#include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <cassert>
 #include <cstddef>
@@ -30,6 +31,7 @@ constexpr auto kObjectiveRow = 0;
 constexpr auto kNumberOfObjectives = std::size_t{1};
 constexpr auto kUseDerivatives = 1;
 constexpr auto kSummaryFileOff = 0;
+constexpr auto kPrintFileOff = 0;
 constexpr auto kPrintFileFortranUnitNumber = 181;  // Arbitrary file number for fortran
 constexpr auto kColdStart = 0;
 constexpr auto kObjectiveValueAddition = 0.0;
@@ -180,7 +182,8 @@ auto run_snopt_problem(const std::vector<double>& aInitialGuess,
                        const InterfaceConstraintVectorType& aConstraints,
                        output::OutputManager&& aOutputManager,
                        const std::filesystem::path& aLogFilePath,
-                       const SNOPTOptions& aOptions) -> std::vector<double>
+                       const SNOPTOptions& aOptions,
+                       const boost::mpi::communicator& aCommunicator) -> std::vector<double>
 {
     assert(aInitialGuess.size() == aBoundConstraints.first.size());
     assert(aInitialGuess.size() == aBoundConstraints.second.size());
@@ -212,7 +215,9 @@ auto run_snopt_problem(const std::vector<double>& aInitialGuess,
     auto tSolution = aInitialGuess;
 
     auto tProblem = snoptProblemA{};
-    tProblem.initialize(aLogFilePath.c_str(), kPrintFileFortranUnitNumber, aLogFilePath.c_str(), kSummaryFileOff);
+    const auto tOutputConfig = detail::make_snopt_output_config(aCommunicator, aLogFilePath);
+    tProblem.initialize(tOutputConfig.mPrintFile.c_str(), tOutputConfig.mPrintUnit, tOutputConfig.mSummaryFile.c_str(),
+                        tOutputConfig.mSummaryUnit);
     detail::apply_options(tProblem, aOptions);
 
     tProblem.solve(
@@ -268,6 +273,21 @@ void apply_options(snoptProblemA& aProblem, const SNOPTOptions& aOptions)
     [[maybe_unused]] const auto tReturnCode = aProblem.setParameter("Solution No");
     assert(tReturnCode == kSuccessfulParameterSet);
 }
+
+auto make_snopt_output_config(const boost::mpi::communicator& aCommunicator,
+                              const std::filesystem::path& aLogFilePath) -> SNOPTOutputConfig
+{
+    if (constexpr auto tRootRank = 0; aCommunicator.rank() == tRootRank)
+    {
+        return SNOPTOutputConfig{.mPrintFile = aLogFilePath.string(),
+                                 .mPrintUnit = kPrintFileFortranUnitNumber,
+                                 .mSummaryFile = aLogFilePath.string(),
+                                 .mSummaryUnit = kSummaryFileOff};
+    }
+    return SNOPTOutputConfig{
+        .mPrintFile = "", .mPrintUnit = kPrintFileOff, .mSummaryFile = "", .mSummaryUnit = kSummaryFileOff};
+}
+
 }  // namespace detail
 
 }  // namespace plato::third_party_integration::snopt
