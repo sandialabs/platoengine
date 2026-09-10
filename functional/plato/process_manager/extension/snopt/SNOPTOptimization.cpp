@@ -97,11 +97,11 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
                                  : output::OutputMode::kEveryIterationOverwrite;
     auto tOutputManager = output::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
 
-    plato::utilities::execute_on_root(boost::mpi::communicator{},
-                                      []() { std::filesystem::remove(kSNOPTOptimizerFileName); });
+    const auto tCommunicator = boost::mpi::communicator{};
+    plato::utilities::execute_on_root(tCommunicator, []() { std::filesystem::remove(kSNOPTOptimizerFileName); });
     const auto tSolution =
         tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), tConstraints, std::move(tOutputManager),
-                                std::string{kSNOPTOptimizerFileName}, mOptions);
+                                std::string{kSNOPTOptimizerFileName}, mOptions, tCommunicator);
 }
 
 namespace detail

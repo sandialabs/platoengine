@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -12,12 +13,10 @@
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
-#include "plato/output/OutputInfo.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 #include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
@@ -32,21 +31,6 @@ const auto kBounds = std::pair{std::vector{0.0, 0.0}, std::vector{2.0, 2.0}};
 const auto kExpected = std::vector{1.0, 1.0};
 constexpr auto kConstraintTarget = 0.0;
 const auto kLogFilePath = std::filesystem::path{"snopt.log"};
-
-[[nodiscard]] auto to_dynamic_vector(const plato::test_utilities::TwoDVector& aX)
-    -> linear_algebra::DynamicVector<double>
-{
-    return linear_algebra::DynamicVector<double>{std::vector{aX(0), aX(1)}};
-}
-
-[[nodiscard]] auto rosenbrock_dynamic_vector_function(const plato::test_utilities::Rosenbrock& aRosenbrock)
-{
-    return core::make_function_with_first_derivative(
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
-        { return tRosenbrock.f(aX[0], aX[1]); },
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
-        { return to_dynamic_vector(tRosenbrock.df(aX[0], aX[1])); });
-}
 
 [[nodiscard]] auto linear_constraint_function()
 {
@@ -142,8 +126,9 @@ void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
                                   const std::vector<double>& aExpectedSolution,
                                   const plato::test_utilities::TestContext& aTestContext)
 {
+    const auto tCommunicator = boost::mpi::communicator{};
     const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), aConstraints,
-                                             output::OutputManager{}, kLogFilePath, SNOPTOptions{});
+                                             output::OutputManager{}, kLogFilePath, SNOPTOptions{}, tCommunicator);
 
     constexpr auto tTolerance = 1e-5;
     ASSERT_EQ(aInitialGuess.size(), aExpectedSolution.size()) << aTestContext;
@@ -158,28 +143,8 @@ void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
 
 TEST(SNOPTInterface, OutputFunctionGetsCalled)
 {
-    const auto tInitialGuess = std::vector{1.2, 0.8};
-    const auto tBounds =
-        std::pair{std::vector{-kSNOPTUnbounded, -kSNOPTUnbounded}, std::vector{kSNOPTUnbounded, kSNOPTUnbounded}};
-
-    int tOutputCount = 1;
-    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&, const output::OutputInfo&)
-    { tOutputCount++; };
-    auto tOutputManager = output::OutputManager{tOutputFunction, output::OutputMode::kEveryIterationAppend};
-
-    const auto tSolution = run_snopt_problem(tInitialGuess, tBounds,
-                                             rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-                                             {}, std::move(tOutputManager), kLogFilePath, SNOPTOptions{});
-
-    /* SNOPT Output:
-    No. of iterations                  19   Objective            5.7675691061E-17
-    No. of major iterations            17   Linear    obj. term  0.0000000000E+00
-                                            Nonlinear obj. term  5.7675691061E-17
-    User function calls (total)        21
-    No. of superbasics                  2   No. of basic nonlinears             0
-    No. of degenerate steps             0   Percentage                       0.00
-    Max x                       2 1.0E+00   Max pi                      1 1.0E+00
-    Max Primal infeas           0 0.0E+00   Max Dual infeas             1 2.8E-07*/
+    const auto tOutputCount =
+        test_utilities::run_snopt_write_output_counter_test(kLogFilePath, boost::mpi::communicator{});
     constexpr int tExpectedOutputCount =
         22;  // SNOPT requires 21 function evaluations and we write the final iteration after SNOPT finishes running
     ASSERT_EQ(tOutputCount, tExpectedOutputCount);
@@ -192,9 +157,9 @@ TEST(SNOPTInterface, RosenbrockUnconstrained)
     const auto tBounds =
         std::pair{std::vector{-kSNOPTUnbounded, -kSNOPTUnbounded}, std::vector{kSNOPTUnbounded, kSNOPTUnbounded}};
     const auto tExpected = std::vector{1.0, 1.0};
-    check_snopt_problem_solution(tInitialGuess, tBounds,
-                                 rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}), {}, tExpected,
-                                 TEST_CONTEXT("Unconstrained"));
+    check_snopt_problem_solution(
+        tInitialGuess, tBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        {}, tExpected, TEST_CONTEXT("Unconstrained"));
     std::filesystem::remove(kLogFilePath);
 }
 
@@ -203,19 +168,20 @@ TEST(SNOPTInterface, RosenbrockSolutionOutsideOfBounds)
     const auto tInitialGuess = std::vector{3.0, 3.0};
     const auto tBounds = std::pair{std::vector{2.0, 2.0}, std::vector{4.0, 4.0}};
     const auto tExpected = std::vector{2.0, 4.0};
-    check_snopt_problem_solution(tInitialGuess, tBounds,
-                                 rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}), {}, tExpected,
-                                 TEST_CONTEXT("Bound constrained"));
+    check_snopt_problem_solution(
+        tInitialGuess, tBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        {}, tExpected, TEST_CONTEXT("Bound constrained"));
     std::filesystem::remove(kLogFilePath);
 }
 
 TEST(SNOPTInterface, RosenbrockLinearlyConstrained)
 {
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/linear_constraint_function(),
-                                       /*.mTargets=*/{kConstraintTarget},
-                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = linear_constraint_function(),
+                                       .mTargets = {kConstraintTarget},
+                                       .mLinearity = Linearity::kLinear,
+                                       .mConstraintDimension = 1U}},
         kExpected, TEST_CONTEXT("Linearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
@@ -223,10 +189,11 @@ TEST(SNOPTInterface, RosenbrockLinearlyConstrained)
 TEST(SNOPTInterface, RosenbrockAffineLinearlyConstrained)
 {
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/affine_linear_constraint_function(),
-                                       /*.mTargets=*/{kConstraintTarget}, /*.mLinearity=*/Linearity::kLinear,
-                                       /*.mConstraintDimension=*/1U}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = affine_linear_constraint_function(),
+                                       .mTargets = {kConstraintTarget},
+                                       .mLinearity = Linearity::kLinear,
+                                       .mConstraintDimension = 1U}},
         kExpected, TEST_CONTEXT("Affine-linearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
@@ -234,34 +201,41 @@ TEST(SNOPTInterface, RosenbrockAffineLinearlyConstrained)
 TEST(SNOPTInterface, RosenbrockNonlinearlyConstrained)
 {
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/nonlinear_constraint_function(),
-                                       /*.mTargets=*/{kConstraintTarget},
-                                       /*.mLinearity=*/Linearity::kNonlinear, /*.mConstraintDimension=*/1U}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = nonlinear_constraint_function(),
+                                       .mTargets = {kConstraintTarget},
+                                       .mLinearity = Linearity::kNonlinear,
+                                       .mConstraintDimension = 1U}},
         kExpected, TEST_CONTEXT("Nonlinearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
 
 TEST(SNOPTInterface, RosenbrockLinearlyAndNonlinearlyConstrained)
 {
-    check_snopt_problem_solution(kInitialGuess, kBounds,
-                                 rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-                                 InterfaceConstraintVectorType{
-                                     {/*.mFunction=*/linear_constraint_function(), /*.mTargets=*/{kConstraintTarget},
-                                      /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U},
-                                     {/*.mFunction=*/nonlinear_constraint_function(), /*.mTargets=*/{kConstraintTarget},
-                                      /*.mLinearity=*/Linearity::kNonlinear, /*.mConstraintDimension=*/1U},
-                                 },
-                                 kExpected, TEST_CONTEXT("Nonlinearly and linearly constrained"));
+    check_snopt_problem_solution(
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{
+            {.mFunction = linear_constraint_function(),
+             .mTargets = {kConstraintTarget},
+             .mLinearity = Linearity::kLinear,
+             .mConstraintDimension = 1U},
+            {.mFunction = nonlinear_constraint_function(),
+             .mTargets = {kConstraintTarget},
+             .mLinearity = Linearity::kNonlinear,
+             .mConstraintDimension = 1U},
+        },
+        kExpected, TEST_CONTEXT("Nonlinearly and linearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
 
 TEST(SNOPTInterface, RosenbrockLinearVectorConstraint)
 {
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/linear_vector_constraint(), /*.mTargets*/ {0.0, 0.0},
-                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/2U}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = linear_vector_constraint(),
+                                       .mTargets{0.0, 0.0},
+                                       .mLinearity = Linearity::kLinear,
+                                       .mConstraintDimension = 2U}},
         kExpected, TEST_CONTEXT("Linearly constrained with vector constraint"));
     std::filesystem::remove(kLogFilePath);
 }
@@ -269,9 +243,11 @@ TEST(SNOPTInterface, RosenbrockLinearVectorConstraint)
 TEST(SNOPTInterface, RosenbrockNonlinearVectorConstraint)
 {
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/nonlinear_vector_constraint(), /*.mTargets*/ {0.0, 0.0},
-                                       /*.mLinearity=*/Linearity::kNonlinear, /*.mConstraintDimension=*/2U}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = nonlinear_vector_constraint(),
+                                       .mTargets{0.0, 0.0},
+                                       .mLinearity = Linearity::kNonlinear,
+                                       .mConstraintDimension = 2U}},
         kExpected, TEST_CONTEXT("Non-linearly constrained with vector constraint"));
     std::filesystem::remove(kLogFilePath);
 }
@@ -280,11 +256,12 @@ TEST(SNOPTInterface, RosenbrockGreaterThanConstraint)
 {
     constexpr auto tConstraintTarget = 0.0;
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/greater_than_constraint_function(),
-                                       /*.mTargets=*/{tConstraintTarget},
-                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U,
-                                       /*.mConstraintType=*/ConstraintType::kGreaterThan}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = greater_than_constraint_function(),
+                                       .mTargets = {tConstraintTarget},
+                                       .mLinearity = Linearity::kLinear,
+                                       .mConstraintDimension = 1U,
+                                       .mConstraintType = ConstraintType::kGreaterThan}},
         kExpected, TEST_CONTEXT("Greater than inequality constrained"));
     std::filesystem::remove(kLogFilePath);
 }
@@ -293,11 +270,12 @@ TEST(SNOPTInterface, RosenbrockLesserThanConstraint)
 {
     constexpr auto tConstraintTarget = 2.0;
     check_snopt_problem_solution(
-        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
-        InterfaceConstraintVectorType{{/*.mFunction=*/lesser_than_constraint_function(),
-                                       /*.mTargets=*/{tConstraintTarget},
-                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U,
-                                       /*.mConstraintType=*/ConstraintType::kLesserThan}},
+        kInitialGuess, kBounds, test_utilities::rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{.mFunction = lesser_than_constraint_function(),
+                                       .mTargets = {tConstraintTarget},
+                                       .mLinearity = Linearity::kLinear,
+                                       .mConstraintDimension = 1U,
+                                       .mConstraintType = ConstraintType::kLesserThan}},
         kExpected, TEST_CONTEXT("Lesser than inequality constrained"));
     std::filesystem::remove(kLogFilePath);
 }
