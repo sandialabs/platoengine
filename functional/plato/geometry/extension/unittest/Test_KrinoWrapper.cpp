@@ -51,6 +51,15 @@ constexpr double kCDFEMEdgeTolerance = 1.0e-3;
 using ParentNodesMap = std::unordered_map<std::size_t, std::vector<std::size_t>>;
 using SensitivityValuesMap = std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>;
 
+const auto kMakeWrapperWithPlane = [](const double aPlaneOffset, const tpik::SnappingParameters& aSnappingParameters)
+{
+    const auto tXZPlaneNormal = third_party_integration::common::Vector3{.x = 0, .y = 1, .z = 0};
+    const auto tPlane = tpik::LevelSetPrimitives{
+        .mPlanes = {tpik::Plane{.mNormal = tXZPlaneNormal, .mOffset = aPlaneOffset}}, .mSpheres = {}};
+    return test_utilities::make_krino_wrapper_from_level_set_primitives(
+        kTemporaryMeshFile, tPlane, tpik::VoidPhase::kIncludeInMesh, {}, aSnappingParameters);
+};
+
 using tpik::test_utilities::KrinoTestFixture;
 
 void initialize_krino()
@@ -560,15 +569,14 @@ TEST_F(OneBlockMeshKrinoFixture, PlaneSensitivities)
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("One block mesh sensitivity check"));
 }
 
-TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
+TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceAboveCDFEMEdgeToleranceDefaultSnapping)
 {
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tDefaultSnappingParameters = tpik::SnappingParameters{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
     {
         constexpr double tOffset = 1.0e-1;
         test_expected_sensitivity_information_near_interface_above_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
             TEST_CONTEXT("Offset 1E-1 - Here the level-set value is above the cdfem edge tolerance, so there is no "
                          "special treatment of sensitivities."));
     }
@@ -576,16 +584,21 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
     {
         constexpr double tOffset = 1.0e-3;
         test_expected_sensitivity_information_near_interface_above_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
             TEST_CONTEXT("Offset 1E-3 - Here the level-set value is above the cdfem edge tolerance, so there is no "
                          "special treatment of sensitivities."));
     }
+}
 
+TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeToleranceDefaultSnapping)
+{
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
     const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     {
         constexpr double tOffset = 1.0e-4;
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
             tExpectedParentNodesInterfaceBelowTolerance,
             TEST_CONTEXT("Offset 1e-4 - Here the level-set value is below the cdfem edge tolerance, meaning that "
                          "cutting is disabled and nodes that cannot snap are treated as if they are exactly on the "
@@ -597,7 +610,7 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
     {
         constexpr double tOffset = 1.0e-9;
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
             tExpectedParentNodesInterfaceBelowTolerance,
             TEST_CONTEXT("Offset 1e-9 - This is the same case as with offset 1e-4, except it checks that there is no "
                          "invisible 1e-8 snapping tolerance like there used to be."));
@@ -606,37 +619,31 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
     {
         constexpr double tOffset = 1.0e-15;
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
             tExpectedParentNodesInterfaceBelowTolerance,
             TEST_CONTEXT(
                 "Offset 1e-15 - This is the same case as with offset 1e-4, except the offset is right about the 4 ULPs "
                 "tolerance value for EXPECT_DOUBLE_EQUALITY which is being used to test for equality."));
     }
-
-    {
-        constexpr double tOffset = 1.0e-4;
-        const auto tSnappingOffParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingOffParameters),
-            tExpectedParentNodesInterfaceBelowTolerance,
-            TEST_CONTEXT("Offset 1e-4 with snapping disabled - Here the level-set value is below the cdfem edge "
-                         "tolerance, meaning that cutting is disabled and both background nodes are treated as if they "
-                         "are exactly on the interface."));
-    }
 }
 
-TEST_F(TetBlock1x2x1KrinoFixture, PlaneInterfaceNearBackground3D)
+TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeToleranceSnappingOff)
 {
-    const auto tMakeWrapperWithPlane =
-        [](const double aPlaneOffset, const tpik::SnappingParameters& aSnappingParameters)
-    {
-        const auto tXZPlaneNormal = third_party_integration::common::Vector3{.x = 0, .y = 1, .z = 0};
-        const auto tPlane = tpik::LevelSetPrimitives{
-            .mPlanes = {tpik::Plane{.mNormal = tXZPlaneNormal, .mOffset = aPlaneOffset}}, .mSpheres = {}};
-        return test_utilities::make_krino_wrapper_from_level_set_primitives(
-            kTemporaryMeshFile, tPlane, tpik::VoidPhase::kIncludeInMesh, {}, aSnappingParameters);
-    };
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
+    const auto tSnappingOffParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
+    constexpr double tOffset = 1.0e-4;
+    test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
+        tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingOffParameters),
+        tExpectedParentNodesInterfaceBelowTolerance,
+        TEST_CONTEXT("Offset 1e-4 with snapping disabled - Here the level-set value is below the cdfem edge "
+                     "tolerance, meaning that cutting is disabled and both background nodes are treated as if they "
+                     "are exactly on the interface."));
+}
 
+TEST_F(TetBlock1x2x1KrinoFixture, SensitivityNearInterfaceDefaultSnapping)
+{
     {
         const auto tOffsets = std::array{1.0e-1, 1.0e-4, 1.0e-15};
         const auto tContextStrings = std::array{
@@ -649,47 +656,49 @@ TEST_F(TetBlock1x2x1KrinoFixture, PlaneInterfaceNearBackground3D)
         for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
         {
             test_expected_sensitivity_information_near_interface_3d(
-                tOffset, tMakeWrapperWithPlane(tOffset, tpik::SnappingParameters{}), TEST_CONTEXT(tContextString),
+                tOffset, kMakeWrapperWithPlane(tOffset, tpik::SnappingParameters{}), TEST_CONTEXT(tContextString),
                 tTolerance);
         }
     }
+}
 
+TEST_F(TetBlock1x2x1KrinoFixture, SensitivityNearInterfaceAboveCDFEMEdgeToleranceSnappingOff)
+{
+    const auto tOffsets = std::array{1.0e-1, 1.001e-3};
+    const auto tContextStrings = std::array{
+        std::string{"Offset 1E-1 no snapping - Sensitivity values should exist for all edges and match to 4 ULPs "
+                    "(~9E-16)."},
+        std::string{"Offset 1.001E-3 no snapping - Offset is just above cdfem edge tolerance. Sensitivity values "
+                    "should exist for all edges and should match to 1E-15."}};
+    constexpr double tTolerance = 1.0e-15;
+    const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
-        const auto tOffsets = std::array{1.0e-1, 1.001e-3};
-        const auto tContextStrings = std::array{
-            std::string{"Offset 1E-1 no snapping - Sensitivity values should exist for all edges and match to 4 ULPs "
-                        "(~9E-16)."},
-            std::string{"Offset 1.001E-3 no snapping - Offset is just above cdfem edge tolerance. Sensitivity values "
-                        "should exist for all edges and should match to 1E-15."}};
-        constexpr double tTolerance = 1.0e-15;
-        const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
-        {
-            test_expected_sensitivity_information_near_interface_no_snapping_above_cdfem_edge_tolerance(
-                tOffset, tMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
-        }
+        test_expected_sensitivity_information_near_interface_no_snapping_above_cdfem_edge_tolerance(
+            tOffset, kMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
     }
+}
 
+TEST_F(TetBlock1x2x1KrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeToleranceSnappingOff)
+{
+    const auto tOffsets = std::array{9.999e-4, 1.0e-15};
+    const auto tContextStrings = std::array{
+        std::string{"Offset 9.999E-4 no snapping - Offset is just below cdfem edge tolerance. Sensitivity values "
+                    "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
+                    "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
+                    "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
+                    "plane also have values of 1, which could be problematic."},
+        std::string{"Offset 1.0E-15 no snapping - Offset is below cdfem edge tolerance. Sensitivity values "
+                    "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
+                    "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
+                    "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
+                    "plane also have values of 1, which could be problematic."}};
+    constexpr double tTolerance = 1.0e-16;
+    const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
-        const auto tOffsets = std::array{9.999e-4, 1.0e-15};
-        const auto tContextStrings = std::array{
-            std::string{"Offset 9.999E-4 no snapping - Offset is just below cdfem edge tolerance. Sensitivity values "
-                        "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
-                        "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
-                        "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
-                        "plane also have values of 1, which could be problematic."},
-            std::string{"Offset 1.0E-15 no snapping - Offset is below cdfem edge tolerance. Sensitivity values "
-                        "should only exist for nodes on the interface with a value of 1 and have a value of 0 for the "
-                        "other parent nodes. Curiously, the second parent node is always set to node 1 for each of "
-                        "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
-                        "plane also have values of 1, which could be problematic."}};
-        constexpr double tTolerance = 1.0e-16;
-        const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
-        {
-            test_expected_sensitivity_information_near_interface_no_snapping_below_cdfem_edge_tolerance(
-                tMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
-        }
+        test_expected_sensitivity_information_near_interface_no_snapping_below_cdfem_edge_tolerance(
+            kMakeWrapperWithPlane(tOffset, tSnappingParameters), TEST_CONTEXT(tContextString), tTolerance);
     }
 }
 
