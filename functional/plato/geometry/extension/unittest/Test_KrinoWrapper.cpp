@@ -573,20 +573,19 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceAboveCDFEMEdgeTolera
 {
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
-    {
-        constexpr double tOffset = 1.0e-1;
-        test_expected_sensitivity_information_near_interface_above_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            TEST_CONTEXT("Offset 1E-1 - Here the level-set value is above the cdfem edge tolerance, so there is no "
-                         "special treatment of sensitivities."));
-    }
 
+    const auto tOffsets = std::array{1.0e-1, 1.0e-3};
+    const auto tContextStrings = std::array{
+        std::string{"Offset 1E-1 - Here the level-set value is above the cdfem edge tolerance, so there is no special "
+                    "treatment of sensitivities."},
+        std::string{"Offset 1E-3 - Here the level-set value is above the cdfem edge tolerance, so there is no special "
+                    "treatment of sensitivities."}};
+
+    for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
-        constexpr double tOffset = 1.0e-3;
         test_expected_sensitivity_information_near_interface_above_cdfem_edge_tolerance(
             tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            TEST_CONTEXT("Offset 1E-3 - Here the level-set value is above the cdfem edge tolerance, so there is no "
-                         "special treatment of sensitivities."));
+            TEST_CONTEXT(tContextString));
     }
 }
 
@@ -595,35 +594,25 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeTolera
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
     const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
-    {
-        constexpr double tOffset = 1.0e-4;
-        test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            tExpectedParentNodesInterfaceBelowTolerance,
-            TEST_CONTEXT("Offset 1e-4 - Here the level-set value is below the cdfem edge tolerance, meaning that "
-                         "cutting is disabled and nodes that cannot snap are treated as if they are exactly on the "
-                         "interface. Since background mesh node 1 is on a fixed block, it cannot be snapped "
-                         "and is treated as if it lies on the interface. Background mesh node 2 can be snapped, so it "
-                         "has the expected sensitivity values."));
-    }
 
-    {
-        constexpr double tOffset = 1.0e-9;
-        test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-            tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            tExpectedParentNodesInterfaceBelowTolerance,
-            TEST_CONTEXT("Offset 1e-9 - This is the same case as with offset 1e-4, except it checks that there is no "
-                         "invisible 1e-8 snapping tolerance like there used to be."));
-    }
+    const auto tOffsets = std::array{1.0e-4, 1.0e-9, 1.0e-15};
+    const auto tContextStrings = std::array{
+        std::string{"Offset 1e-4 - Here the level-set value is below the cdfem edge tolerance, meaning that "
+                    "cutting is disabled and nodes that cannot snap are treated as if they are exactly on the "
+                    "interface. Since background mesh node 1 is on a fixed block, it cannot be snapped "
+                    "and is treated as if it lies on the interface. Background mesh node 2 can be snapped, so it "
+                    "has the expected sensitivity values."},
+        std::string{"Offset 1e-9 - This is the same case as with offset 1e-4, except it checks that there is no "
+                    "invisible 1e-8 snapping tolerance like there used to be."},
+        std::string{"Offset 1e-15 - This is the same case as with offset 1e-4, except the offset is right "
+                    "about the 4 ULPs "
+                    "tolerance value for EXPECT_DOUBLE_EQUALITY which is being used to test for equality."}};
 
+    for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
-        constexpr double tOffset = 1.0e-15;
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
             tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            tExpectedParentNodesInterfaceBelowTolerance,
-            TEST_CONTEXT(
-                "Offset 1e-15 - This is the same case as with offset 1e-4, except the offset is right about the 4 ULPs "
-                "tolerance value for EXPECT_DOUBLE_EQUALITY which is being used to test for equality."));
+            tExpectedParentNodesInterfaceBelowTolerance, TEST_CONTEXT(tContextString));
     }
 }
 
