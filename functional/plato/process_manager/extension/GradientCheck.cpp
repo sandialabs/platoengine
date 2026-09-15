@@ -1,6 +1,5 @@
 #include "plato/process_manager/extension/GradientCheck.hpp"
 
-#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <optional>
@@ -39,19 +38,18 @@ namespace
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] const auto kGradientCheckValidationRegistration =
-    input_validation::InputBlockValidationRegistration<>{
-        [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); },
-        [](const input_parser::gradient_check& aInput)
-        {
-            return input_validation::error_message_for_empty_parameter(
-                input_parser::block_name<input_parser::gradient_check>(), aInput.direction_vector_type,
-                "direction_vector_type");
-        }};
+[[maybe_unused]] const auto kGradientCheckValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
+    [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
+    [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },
+    [](const input_parser::gradient_check& aInput) { return detail::validate_step_size_reduction_factor(aInput); },
+    [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); },
+    [](const input_parser::gradient_check& aInput)
+    {
+        return input_validation::error_message_for_empty_parameter(
+            input_parser::block_name<input_parser::gradient_check>(), aInput.direction_vector_type,
+            "direction_vector_type");
+    }};
 
 [[nodiscard]] auto gradient_check_input(const library::ValidatedProcessManagerInput& aValidInput)
     -> const input_parser::gradient_check&
@@ -67,8 +65,7 @@ GradientCheck::GradientCheck(const library::ValidatedProcessManagerInput& aInput
       mInitialDirectionMagnitude(gradient_check_input(aInput).initial_direction_magnitude.value()),
       mStepSizeReductionFactor(gradient_check_input(aInput).step_size_reduction_factor.value()),
       mDirectionVectorType(gradient_check_input(aInput).direction_vector_type.value()),
-      mSeed(gradient_check_input(aInput).random_direction_seed.value_or(
-          std::chrono::system_clock::now().time_since_epoch().count()))
+      mSeed(gradient_check_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
 {
 }
 

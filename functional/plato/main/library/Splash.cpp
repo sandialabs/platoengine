@@ -3,6 +3,7 @@
 #include <ostream>
 #include <string_view>
 
+#include "plato/main/library/VersionInfo.hpp"
 #include "plato/utilities/Colorize.hpp"
 
 namespace plato::main::library
@@ -62,6 +63,7 @@ void print_splash_screen(std::ostream& aStream)
     aStream << Border{"#"} << Logo{"  @@@@@   "} << HelpText{"Questions? contact Plato3d-help@sandia.gov"} << "                          " << Border{"#\n"};
     aStream << Border{"#"} << Logo{ "                                                                              "} << Border{"#\n"};
     aStream << Border{"################################################################################\n\n"};
+    aStream << version_info() << std::endl;
     // clang-format on
 }
 // LCOV_EXCL_STOP

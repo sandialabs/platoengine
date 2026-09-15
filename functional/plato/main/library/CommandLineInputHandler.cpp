@@ -14,6 +14,7 @@
 #include "plato/main/library/Executor.hpp"
 #include "plato/main/library/ExitStatus.hpp"
 #include "plato/main/library/Splash.hpp"
+#include "plato/main/library/VersionInfo.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"
@@ -26,6 +27,7 @@ namespace plato::main::library
 namespace
 {
 constexpr auto kHelpKey = std::string_view{"--help"};
+constexpr auto kVersionKey = std::string_view{"--version"};
 }  // namespace
 
 auto handle_input(const std::vector<std::string>& aArguments) -> ExitStatus
@@ -35,6 +37,10 @@ auto handle_input(const std::vector<std::string>& aArguments) -> ExitStatus
     if (!aArguments.empty() && aArguments.front() == std::string{kHelpKey})
     {
         detail::print_known_inputs();
+    }
+    else if (!aArguments.empty() && aArguments.front() == std::string{kVersionKey})
+    {
+        detail::print_version();
     }
     else if (aArguments.empty() || !std::filesystem::exists(aArguments.front()))
     {
@@ -77,7 +83,8 @@ auto run_plato(const std::filesystem::path& aInputFile) -> ExitStatus
     }
     catch (const std::exception& tError)
     {
-        services::system_logger().logError("Plato encountered an exception, exiting.");
+        services::system_logger().logError(
+            "Plato encountered an exception, exiting. Check log files for additional error messages.");
         services::system_logger().logError(tError.what());
         return ExitStatus::kRuntimeError;
     }
@@ -97,5 +104,9 @@ void print_known_inputs()
                                       []() { plato::documentation::known_inputs(std::cout); });
 }
 
+void print_version()
+{
+    plato::utilities::execute_on_root(boost::mpi::communicator{}, []() { std::cout << version_info() << std::endl; });
+}
 }  // namespace detail
 }  // namespace plato::main::library

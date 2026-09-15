@@ -5,6 +5,7 @@
 
 #include "plato/core/Aggregate.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::core
 {
@@ -48,7 +49,10 @@ template <typename DomainType, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, typename Argument>
 auto ParallelAggregate<DomainType, Info...>::evaluate(Argument&& aArgument) const
 {
-    auto tResult = mAggregateFunction.template evaluate<kOrder, kOrdering>(std::forward<Argument>(aArgument));
+    const auto tCompute = [this](auto&& aLambdaArgument)
+    { return mAggregateFunction.template evaluate<kOrder, kOrdering>(std::forward<Argument>(aLambdaArgument)); };
+
+    auto tResult = utilities::mpi_collective_try(mCommunicator, tCompute, std::forward<Argument>(aArgument));
     boost::mpi::all_reduce(mCommunicator, boost::mpi::inplace(tResult), std::plus<decltype(tResult)>());
     return tResult;
 }

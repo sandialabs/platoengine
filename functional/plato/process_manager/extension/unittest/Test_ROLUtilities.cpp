@@ -132,4 +132,11 @@ TEST(ProcessManagerData, InputFileToROLSolverInequality)
     parse_and_generate_solver(tInput, TEST_CONTEXT("Inequality constraint"));
 }
 
+TEST(ROLUtilities, FixedSeedValue)
+{
+    constexpr auto tGold = 666U;
+    const auto tResult = fixed_seed_value();
+    EXPECT_EQ(tGold, tResult);
+}
+
 }  // namespace plato::process_manager::extension::unittest

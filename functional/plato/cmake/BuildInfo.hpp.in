@@ -1,0 +1,25 @@
+#ifndef PLATO_MAIN_LIBRARY_BUILDINFO
+#define PLATO_MAIN_LIBRARY_BUILDINFO
+
+#include <string_view>
+
+namespace plato::main::library
+{
+
+/// @brief Returns a string_view of the platoengine project version defined in CMake.
+[[nodiscard]] constexpr auto project_version() -> std::string_view
+{
+    constexpr auto tProjectVersion = std::string_view{"@PROJECT_VERSION@"};
+    return tProjectVersion;
+}
+
+/// @brief Returns a string_view of platoengine commit defined in the git repository.
+[[nodiscard]] constexpr auto git_commit_hash() -> std::string_view
+{
+    constexpr auto tCommitHash = std::string_view{"@PLATO_GIT_COMMIT_HASH@"};
+    return tCommitHash;
+}
+
+}  // namespace plato::main::library
+
+#endif

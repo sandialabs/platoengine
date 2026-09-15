@@ -1,6 +1,5 @@
 #include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 
-#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -108,8 +107,7 @@ ObjectiveGradientCheck::ObjectiveGradientCheck(const library::ValidatedProcessMa
                                objective_gradient_check_input(aInput).number_of_steps.value(),
                                objective_gradient_check_input(aInput).initial_direction_magnitude.value()),
       mDirectionVectorType(objective_gradient_check_input(aInput).direction_vector_type.value()),
-      mSeed(objective_gradient_check_input(aInput).random_direction_seed.value_or(
-          std::chrono::system_clock::now().time_since_epoch().count()))
+      mSeed(objective_gradient_check_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
 {
 }
 
