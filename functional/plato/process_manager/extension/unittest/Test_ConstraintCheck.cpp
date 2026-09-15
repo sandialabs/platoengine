@@ -72,11 +72,13 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 
     {
         auto tNonlinearConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
+        tNonlinearConstraint.name = std::string{"unicycle-shed"};
         tNonlinearConstraint.is_linear = false;
         tCheckFunction(tNonlinearConstraint, TEST_CONTEXT("Non-linear equality constraint"));
     }
     {
         auto tNonlinearConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
+        tNonlinearConstraint.name = std::string{"unicycle-shed"};
         tNonlinearConstraint.is_linear = false;
         tNonlinearConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
         tCheckFunction(tNonlinearConstraint, TEST_CONTEXT("Non-linear inequality constraint"));

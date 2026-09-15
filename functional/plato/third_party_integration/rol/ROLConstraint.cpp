@@ -1,5 +1,6 @@
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 
+#include <ROL_BoundConstraint.hpp>
 #include <ROL_Bounds.hpp>
 #include <ROL_Problem.hpp>
 #include <ROL_Ptr.hpp>
@@ -95,7 +96,7 @@ auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints)
 }
 
 auto create_inequality_bounds(const ConstraintType aType,
-                              const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>
+                              const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::BoundConstraint<double>>
 {
     return kCreateInequalityBoundsMap.at(aType)(aNumberOfConstraints);
 }
@@ -116,7 +117,7 @@ void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLC
 
 void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
-    auto tInequalityBoundConstraint =
+    const auto tInequalityBoundConstraint =
         create_inequality_bounds(aROLConstraint.mType, aROLConstraint.mNumberOfConstraints);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aROLConstraint.mNumberOfConstraints, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
@@ -129,7 +130,7 @@ void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstra
 
 void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
-    auto tInequalityBoundConstraint =
+    const auto tInequalityBoundConstraint =
         create_inequality_bounds(aROLConstraint.mType, aROLConstraint.mNumberOfConstraints);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aROLConstraint.mNumberOfConstraints, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);

@@ -281,7 +281,7 @@ CheckOptions:
   - key:             readability-identifier-naming.ValueTemplateParameterPrefix
     value:           'k'
   - key:             misc-include-cleaner.IgnoreHeaders
-    value:           '.*/DynamicVectorFormatter.hpp;.*/AnalysisDomainMeshOperators.hpp;.*/ParallelJacobianMultiplier.hpp;.*/DynamicVectorSerialization.hpp;.*/Vector3Hash.hpp;.*/Vector3Serialization.hpp;.*/TwoDTestTypesSerialization.hpp'
+    value:           '.*/DynamicVectorFormatter.hpp;.*/AnalysisDomainMeshOperators.hpp;.*/ParallelJacobianMultiplier.hpp;.*/DynamicVectorSerialization.hpp;.*/Vector3Hash.hpp;.*/Vector3Serialization.hpp;.*/TwoDTestTypesSerialization.hpp;.*/Teuchos_DefaultMpiComm.hpp;.*/Teuchos_DefaultMpiComm_decl.hpp'
   - key:             readability-identifier-length.IgnoredVariableNames
     value:           'tX|tY|tZ|tF|tG|tH'
   - key:             readability-identifier-length.IgnoredParameterNames
