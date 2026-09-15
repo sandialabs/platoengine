@@ -2,7 +2,12 @@
 #define PLATO_INPUT_PARSER_PARSEERRORUTILITIES
 
 #include <algorithm>
+#include <optional>
 #include <string>
+
+#include "plato/input_parser/BlockStructKeywordForms.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 
 namespace plato::input_parser
 {
@@ -16,7 +21,18 @@ auto parser_has_error(bool aParsedSuccessfully, Iterator aParsedUntilIterator, I
 
 /// @brief Returns an error message for a parsing error that contains some input context.
 template <typename Iterator>
-auto error_message(Iterator aParsedUntilIterator, Iterator aInputEndIterator, char aTokenDelimiter) -> std::string;
+auto error_message(Iterator aParsedUntilIterator,
+                   Iterator aInputEndIterator,
+                   char aTokenDelimiter,
+                   const std::optional<std::string>& aBlockName = std::nullopt) -> std::string;
+
+/// @brief Returns an error message for a concrete input block parse failure.
+///
+/// This includes the local parse context and the expected keyword forms for @a InputStruct.
+template <InputBlock InputStruct, typename Iterator>
+auto input_block_error_message(Iterator aParsedUntilIterator,
+                               Iterator aInputEndIterator,
+                               char aTokenDelimiter) -> std::string;
 
 template <typename Iterator>
 auto parser_has_error(const bool aParsedSuccessfully,
@@ -27,13 +43,30 @@ auto parser_has_error(const bool aParsedSuccessfully,
 }
 
 template <typename Iterator>
-auto error_message(const Iterator aParsedUntilIterator, const Iterator aInputEndIterator, const char aTokenDelimiter)
-    -> std::string
+auto error_message(const Iterator aParsedUntilIterator,
+                   const Iterator aInputEndIterator,
+                   const char aTokenDelimiter,
+                   const std::optional<std::string>& aBlockName) -> std::string
 {
     const auto tToDelimeterIterator = std::find(aParsedUntilIterator, aInputEndIterator, aTokenDelimiter);
     const auto tContext = std::string{aParsedUntilIterator, tToDelimeterIterator};
-    return "Parsing error near: \n" + tContext;
+    const auto tParsingError = std::string{"Parsing error near: \n"};
+    return aBlockName.has_value() ? utilities::concatenate(aBlockName.value(), ": ", tParsingError, tContext)
+                                  : utilities::concatenate(tParsingError, tContext);
 }
+
+template <InputBlock InputStruct, typename Iterator>
+auto input_block_error_message(const Iterator aParsedUntilIterator,
+                               const Iterator aInputEndIterator,
+                               const char aTokenDelimiter) -> std::string
+{
+    const auto tToDelimeterIterator = std::find(aParsedUntilIterator, aInputEndIterator, aTokenDelimiter);
+    const auto tContext = std::string{aParsedUntilIterator, tToDelimeterIterator};
+    const auto tBlockStructName = block_name<InputStruct>();
+    return error_message(aParsedUntilIterator, aInputEndIterator, aTokenDelimiter, tBlockStructName) + "\n\n" +
+           expected_keyword_forms_message<InputStruct>(tContext);
+}
+
 }  // namespace plato::input_parser
 
 #endif

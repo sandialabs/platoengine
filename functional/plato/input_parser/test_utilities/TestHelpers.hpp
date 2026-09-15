@@ -14,7 +14,7 @@
 
 namespace plato::input_parser
 {
-struct ParsedInput;
+class ParsedInput;
 }
 
 namespace plato::input_parser::test_utilities

@@ -7,6 +7,7 @@
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
+#include "plato/input_parser/UnwrappedBoostOptional.hpp"
 #include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -35,8 +36,8 @@ class CrossLinker
     CrossLinker(InputTypeHelper<Input> /*unused*/);
 
     /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aParsedInput.
-    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
-        -> CrossLinkedBlockOrError;
+    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock,
+                                 const ParsedInput& aParsedInput) const -> CrossLinkedBlockOrError;
 
    private:
     std::function<CrossLinkedBlockOrError(InputDataBlock, const ParsedInput&)> mCrossLinkFunction;
@@ -128,18 +129,6 @@ struct ApplyCrossLink
     }
 };
 
-template <typename T>
-struct TypeOrOptional
-{
-    using type = T;
-};
-
-template <typename T>
-struct TypeOrOptional<boost::optional<T>>
-{
-    using type = T;
-};
-
 template <typename Input, typename ApplyFunction>
 void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aParsedInput, ApplyFunction& aApplyFunction)
 {
@@ -148,7 +137,7 @@ void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aParsedInp
     boost::fusion::for_each(tCastInputBlock,
                             [&aParsedInput, &aApplyFunction](auto& aField)
                             {
-                                using FieldType = typename TypeOrOptional<std::decay_t<decltype(aField)>>::type;
+                                using FieldType = UnwrappedBoostOptionalT<std::decay_t<decltype(aField)>>;
                                 if constexpr (kIsCrossReference<FieldType>)
                                 {
                                     aApplyFunction(aField, aParsedInput.get<FieldType::mComponentType>());
