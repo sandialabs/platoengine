@@ -18,11 +18,6 @@
 
 namespace plato::third_party_integration::krino
 {
-namespace
-{
-constexpr auto kSortByGlobalId = true;
-}  // namespace
-
 auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aBackgroundMesh);
@@ -54,7 +49,7 @@ auto node_entities_in_mesh(const BackgroundMesh& aBackgroundMesh) -> stk::mesh::
         stk::mesh::selectField(aBackgroundMesh.levelSetFields().front().isovar) & !tCdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aBackgroundMesh.bulkData().buckets(stk::topology::NODE_RANK), tNodes,
-                                     kSortByGlobalId);
+                                     sort_by_global_id());
     return tNodes;
 }
 

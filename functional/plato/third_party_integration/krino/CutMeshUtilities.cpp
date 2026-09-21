@@ -31,7 +31,6 @@ namespace plato::third_party_integration::krino
 {
 namespace
 {
-constexpr auto kSortByGlobalId = true;
 const auto kLevelSetFields = std::vector<std::string>{"LS", "LS_COPYFORSNAPPING"};
 constexpr std::string_view kVoidPhaseSuffix = "_void";
 
@@ -68,7 +67,7 @@ auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
 
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
-                                     kSortByGlobalId);
+                                     sort_by_global_id());
     return tNodes;
 }
 }  // namespace

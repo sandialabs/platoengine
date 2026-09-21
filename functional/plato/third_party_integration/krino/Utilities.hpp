@@ -19,6 +19,9 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// @brief Create a comm duplicate of the communicator that Krino has
 [[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
 
+/// @brief Returns the setting for selecting node entities in krino meshes.
+[[nodiscard]] auto sort_by_global_id() -> bool;
+
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', and the level set fields
 /// in the krino mesh were set up by constructing a background mesh.

@@ -20,6 +20,7 @@ namespace
 {
 constexpr auto kLevelSetName = std::string_view{"LS"};
 constexpr auto kVoidPhaseName = std::string_view{"void"};
+constexpr auto kSortByGlobalId = true;
 }  // namespace
 
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator)
@@ -31,6 +32,8 @@ auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
     return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
 }
+
+auto sort_by_global_id() -> bool { return kSortByGlobalId; }
 
 auto get_level_set_field_name() -> std::string { return std::string{kLevelSetName}; }
 
