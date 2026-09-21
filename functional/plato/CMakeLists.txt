@@ -9,6 +9,8 @@ copy_test_utility_data_files_and_convert_to_cdf()
 clang_tidy_setup()
 create_coverage_target()
 create_unittest_precompiled_header_target()
+include( ${CMAKE_UTIL_DIR}/configure_build_info.cmake )
+configure_build_info()
 
 add_subdirectory(./utilities)
 add_subdirectory(./analysis)

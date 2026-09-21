@@ -23,12 +23,14 @@ namespace
 
 const auto kPlatoArgumentsEmpty = std::vector<std::string>{};
 const auto kPlatoArgumentsHelp = std::vector<std::string>{"--help"};
+const auto kPlatoArgumentsVersion = std::vector<std::string>{"--version"};
 const auto kPlatoArgumentsInputFile = std::vector<std::string>{"input.i"};
 const auto kPlatoArgumentsJunk = std::vector<std::string>{"junk"};
 
 const auto kAbortingKeys = std::vector<std::string>{"Executable", "--help", "Aborting"};
 const auto kKnownInputKeys = std::vector<std::string>{"identity_filter", "filter_radius", "density_topology",
                                                       "initial_density_value", "[double]"};
+const auto kKnownVersionKeys = std::vector<std::string>{"Version", "commit"};
 
 const auto kCouldNotValidateKeys = std::vector<std::string>{"Parsing ", "error", "near:"};
 
@@ -57,6 +59,14 @@ TEST_F(CommandLineInputHandlerCoutFixture, HandleInputHelp)
     const auto tExitStatus = handle_input(kPlatoArgumentsHelp);
     EXPECT_EQ(tExitStatus, ExitStatus::kExecutionSuccessful);
     checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Help message requested from plato."));
+}
+
+TEST_F(CommandLineInputHandlerCoutFixture, HandleInputVersion)
+{
+    const auto tExitStatus = handle_input(kPlatoArgumentsVersion);
+    EXPECT_EQ(tExitStatus, ExitStatus::kExecutionSuccessful);
+    checkRankZeroCoutStringStreamStreamForPattern(kKnownVersionKeys,
+                                                  TEST_CONTEXT("Version message requested from plato."));
 }
 
 TEST(CommandLineInputHandler, RunPlatoEmptyFile)

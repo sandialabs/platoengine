@@ -83,7 +83,7 @@ TEST(CriterionValidation, CheckValidationCriterionFilesExistOnConstraint)
 TEST(CriterionValidation, CheckValidationParallelCriterion)
 {
     const auto [tTestPluginDirectory, tAppName] = test_utilities::test_configurations();
-    const auto tNumberRegistered = register_plugin_apps({tTestPluginDirectory.directory()});
+    const auto tNumberRegistered = register_plugin_apps({tTestPluginDirectory.directory()}).size();
     ASSERT_EQ(tNumberRegistered, 1U);
 
     auto tCriterion = input_parser::objective{};

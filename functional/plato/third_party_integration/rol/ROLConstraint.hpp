@@ -53,8 +53,8 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aRO
 
 /// @brief Helper function that creates a bounds object sized to @a aNumberofConstraints that will work for vector
 /// valued constraints all less/greater than or equal to 0
-[[nodiscard]] auto create_inequality_bounds(ConstraintType aType,
-                                            unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>;
+[[nodiscard]] auto create_inequality_bounds(ConstraintType aType, unsigned int aNumberOfConstraints)
+    -> ROL::Ptr<ROL::BoundConstraint<double>>;
 
 [[nodiscard]] auto create_greater_than_inequality_bounds(unsigned int aNumberOfConstraints)
     -> ROL::Ptr<ROL::Bounds<double>>;

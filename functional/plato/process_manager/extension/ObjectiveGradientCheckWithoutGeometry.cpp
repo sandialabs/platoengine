@@ -1,6 +1,5 @@
-#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheckWithoutGeometry.hpp"
 
-#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -46,45 +45,48 @@ constexpr auto kDefaultDensityValue = 0.5;
     const library::ValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            { ObjectiveGradientCheck{aValidInput}.run(aProcessManangerData); }};
+            { ObjectiveGradientCheckWithoutGeometry{aValidInput}.run(aProcessManangerData); }};
 }
 
 [[maybe_unused]] const auto kObjectiveGradientCheckParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::objective_gradient_check>{};
+    input_parser::ComponentParserRegistration<input_parser::objective_gradient_check_without_geometry>{};
 
-[[maybe_unused]] const auto kObjectiveGradientCheckProcessManagerRegistration =
-    library::ProcessManagerRegistration{input_parser::block_name<input_parser::objective_gradient_check>(),
-                                        [](const library::ValidatedProcessManagerInput& aValidInput)
-                                        { return make_objective_gradient_check_process_manager(aValidInput); }};
+[[maybe_unused]] const auto kObjectiveGradientCheckProcessManagerRegistration = library::ProcessManagerRegistration{
+    input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
+    [](const library::ValidatedProcessManagerInput& aValidInput)
+    { return make_objective_gradient_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] const auto kObjectiveGradientCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
-        [](const input_parser::objective_gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
-        [](const input_parser::objective_gradient_check& aInput) { return detail::validate_input_mesh_name(aInput); },
-        [](const input_parser::objective_gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
-        [](const input_parser::objective_gradient_check& aInput)
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
+        { return detail::validate_output_file_name(aInput); },
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
+        { return detail::validate_input_mesh_name(aInput); },
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
+        { return detail::validate_number_of_steps(aInput); },
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
         { return detail::validate_initial_direction_magnitude(aInput); },
-        [](const input_parser::objective_gradient_check& aInput)
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
         { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::objective_gradient_check& aInput)
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
         { return detail::validate_random_direction_seed(aInput); },
-        [](const input_parser::objective_gradient_check& aInput)
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
         {
             return input_validation::error_message_for_empty_parameter(
-                input_parser::block_name<input_parser::objective_gradient_check>(), aInput.direction_vector_type,
-                "direction_vector_type");
+                input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
+                aInput.direction_vector_type, "direction_vector_type");
         },
-        [](const input_parser::objective_gradient_check& aInput)
+        [](const input_parser::objective_gradient_check_without_geometry& aInput)
         {
             return input_validation::error_message_for_empty_parameter(
-                input_parser::block_name<input_parser::objective_gradient_check>(), aInput.design_variable_type,
-                "design_variable_type");
+                input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
+                aInput.design_variable_type, "design_variable_type");
         }};
 
 [[nodiscard]] auto objective_gradient_check_input(const library::ValidatedProcessManagerInput& aValidInput)
-    -> const input_parser::objective_gradient_check&
+    -> const input_parser::objective_gradient_check_without_geometry&
 {
-    return input_validation::get_input_block<input_parser::objective_gradient_check>(aValidInput);
+    return input_validation::get_input_block<input_parser::objective_gradient_check_without_geometry>(aValidInput);
 }
 
 [[nodiscard]] auto make_density_analysis_domain_mesh(const std::vector<double>& aDesignVariables,
@@ -100,7 +102,8 @@ constexpr auto kDefaultDensityValue = 0.5;
 }
 }  // namespace
 
-ObjectiveGradientCheck::ObjectiveGradientCheck(const library::ValidatedProcessManagerInput& aInput)
+ObjectiveGradientCheckWithoutGeometry::ObjectiveGradientCheckWithoutGeometry(
+    const library::ValidatedProcessManagerInput& aInput)
     : mInputMeshName(objective_gradient_check_input(aInput).input_mesh_name.value().mToken),
       mOutputFileName(objective_gradient_check_input(aInput).output_file_name.value().mToken),
       mDesignVariableType(objective_gradient_check_input(aInput).design_variable_type.value()),
@@ -108,15 +111,14 @@ ObjectiveGradientCheck::ObjectiveGradientCheck(const library::ValidatedProcessMa
                                objective_gradient_check_input(aInput).number_of_steps.value(),
                                objective_gradient_check_input(aInput).initial_direction_magnitude.value()),
       mDirectionVectorType(objective_gradient_check_input(aInput).direction_vector_type.value()),
-      mSeed(objective_gradient_check_input(aInput).random_direction_seed.value_or(
-          std::chrono::system_clock::now().time_since_epoch().count()))
+      mSeed(objective_gradient_check_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
 {
 }
 
-auto ObjectiveGradientCheck::runCoordinateImpl(const library::ProcessManagerData& aProblem,
-                                               const std::filesystem::path& aInputMeshName,
-                                               const linear_algebra::DynamicVector<double>& aDesignVariables) const
-    -> std::string
+auto ObjectiveGradientCheckWithoutGeometry::runCoordinateImpl(
+    const library::ProcessManagerData& aProblem,
+    const std::filesystem::path& aInputMeshName,
+    const linear_algebra::DynamicVector<double>& aDesignVariables) const -> std::string
 {
     const auto tCoordinateFunction = [&](const std::filesystem::path& aMeshFilePath) -> double
     {
@@ -136,10 +138,10 @@ auto ObjectiveGradientCheck::runCoordinateImpl(const library::ProcessManagerData
     return gradientCheckTable(tGradientChecker, aDesignVariables);
 }
 
-auto ObjectiveGradientCheck::runDensityImpl(const library::ProcessManagerData& aProblem,
-                                            const std::filesystem::path& aInputMeshName,
-                                            const linear_algebra::DynamicVector<double>& aDesignVariables) const
-    -> std::string
+auto ObjectiveGradientCheckWithoutGeometry::runDensityImpl(
+    const library::ProcessManagerData& aProblem,
+    const std::filesystem::path& aInputMeshName,
+    const linear_algebra::DynamicVector<double>& aDesignVariables) const -> std::string
 {
     const auto tDensityFunction = [&](const linear_algebra::DynamicVector<double>& aDesign) -> double
     {
@@ -161,9 +163,10 @@ auto ObjectiveGradientCheck::runDensityImpl(const library::ProcessManagerData& a
     return gradientCheckTable(tDensityGradientChecker, aDesignVariables);
 }
 
-void ObjectiveGradientCheck::run(const library::ProcessManagerData& aProblem) const
+void ObjectiveGradientCheckWithoutGeometry::run(const library::ProcessManagerData& aProblem) const
 {
-    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::objective_gradient_check>();
+    [[maybe_unused]] const auto tTaskLogger =
+        library::run_task_log<input_parser::objective_gradient_check_without_geometry>();
     const auto tDesignVariables =
         linear_algebra::DynamicVector<double>{detail::design_variables(mInputMeshName, mDesignVariableType)};
     const auto tGradientCheck = mDesignVariableType == input_parser::DesignVariableTypes::kCoordinate
@@ -182,25 +185,28 @@ namespace detail
 {
 auto default_starting_density() -> double { return kDefaultDensityValue; }
 
-auto validate_output_file_name(const input_parser::objective_gradient_check& aInput) -> std::optional<std::string>
+auto validate_output_file_name(const input_parser::objective_gradient_check_without_geometry& aInput)
+    -> std::optional<std::string>
 {
     return input_validation::error_message_for_empty_parameter(
-        input_parser::block_name<input_parser::objective_gradient_check>(), aInput.output_file_name,
+        input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(), aInput.output_file_name,
         "output_file_name");
 }
 
-auto validate_input_mesh_name(const input_parser::objective_gradient_check& aInput) -> std::optional<std::string>
+auto validate_input_mesh_name(const input_parser::objective_gradient_check_without_geometry& aInput)
+    -> std::optional<std::string>
 {
     if (!aInput.input_mesh_name.has_value())
     {
         return input_validation::error_message_for_empty_parameter(
-            input_parser::block_name<input_parser::objective_gradient_check>(), aInput.input_mesh_name,
+            input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(), aInput.input_mesh_name,
             "input_mesh_name");
     }
     if (!std::filesystem::exists(aInput.input_mesh_name.value().mToken))
     {
-        return utilities::concatenate(input_parser::block_name<input_parser::objective_gradient_check>(),
-                                      ": Could not find input mesh with name ", aInput.input_mesh_name->mToken);
+        return utilities::concatenate(
+            input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
+            ": Could not find input mesh with name ", aInput.input_mesh_name->mToken);
     }
     return std::nullopt;
 }

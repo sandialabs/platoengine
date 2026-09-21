@@ -3,16 +3,40 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <filesystem>
 #include <memory>
 #include <numeric>
 
+#include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 
 namespace plato::third_party_integration::snopt::test_utilities
 {
+
+/// @brief Convert a 2D vector @a aX to a dynamic vector
+[[nodiscard]] auto to_dynamic_vector(const plato::test_utilities::TwoDVector& aX)
+    -> linear_algebra::DynamicVector<double>;
+
+/// @brief Create a Rosenbrock core::function from @a aRosenbrock
+[[nodiscard]] inline auto rosenbrock_dynamic_vector_function(const plato::test_utilities::Rosenbrock& aRosenbrock)
+{
+    return core::make_function_with_first_derivative(
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return tRosenbrock.f(aX[0], aX[1]); },
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return to_dynamic_vector(tRosenbrock.df(aX[0], aX[1])); });
+}
+
+/// @brief Test that checks the number of calls to the write function and creates a log file @a aLogFilePath
+auto run_snopt_write_output_counter_test(const std::filesystem::path& aLogFilePath,
+                                         const boost::mpi::communicator& aCommunicator) -> int;
+
 template <typename IndexType, typename EntryType>
 using Triple = std::tuple<typename SparseMatrixBuilder<IndexType, EntryType>::Row,
                           typename SparseMatrixBuilder<IndexType, EntryType>::Column,

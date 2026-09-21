@@ -20,7 +20,8 @@ auto get_krino_sensitivities(const BackgroundMesh& aBackgroundMesh) -> std::vect
 {
     constexpr auto tComputeClosestPointSensitivities = false;
     return ::krino::get_levelset_shape_sensitivities(aBackgroundMesh.bulkData(), aBackgroundMesh.levelSetFields(),
-                                                     tComputeClosestPointSensitivities);
+                                                     tComputeClosestPointSensitivities)
+        .front();
 }
 
 auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,

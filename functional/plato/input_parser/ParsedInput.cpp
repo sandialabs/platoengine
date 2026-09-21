@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <iterator>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -15,6 +16,7 @@
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/Expected.hpp"
+#include "plato/utilities/LevenshteinDistance.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -22,6 +24,8 @@ namespace plato::input_parser
 {
 namespace
 {
+constexpr auto kNumberOfClosestComponentsToReturn = std::size_t{5};
+
 template <components::ComponentType kComponentType, typename Iterator>
 auto partition_by_component_type(const Iterator aBegin, const Iterator aEnd)
 {
@@ -89,6 +93,20 @@ template <typename IteratorArray, std::size_t... kIndices>
     return ParsedInput{std::move(tParsedComponents)};
 }
 
+[[nodiscard]] auto component_names_near_token(
+    const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers,
+    const std::string& aToken,
+    const std::size_t aMaxSize) -> std::vector<std::string>
+{
+    const auto tToComponentNames = aComponentParsers | std::views::keys;
+    auto tComponentNames = std::vector<std::string>{tToComponentNames.begin(), tToComponentNames.end()};
+
+    auto tSortedNames = utilities::levenshtein_distance_sorted_container(
+        std::move(tComponentNames), aToken, [](const auto& aName) { return std::string_view{aName}; });
+    tSortedNames.resize(std::min(tSortedNames.size(), aMaxSize));
+    return tSortedNames;
+}
+
 [[nodiscard]] auto parse_component(const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers,
                                    const GenericBlockData& aGenericBlock) -> ComponentBlockParser::ParsedDataOrError
 {
@@ -97,7 +115,11 @@ template <typename IteratorArray, std::size_t... kIndices>
     {
         return tComponentParserIterator->second.parse(aGenericBlock);
     }
-    return utilities::unexpected("Parsing error: Could not find component with name: " + aGenericBlock.mName.mToken);
+    const auto tKnownComponentsNear =
+        component_names_near_token(aComponentParsers, aGenericBlock.mName.mToken, kNumberOfClosestComponentsToReturn);
+    return utilities::unexpected(
+        utilities::concatenate("Parsing error: Could not find component with name: ", aGenericBlock.mName.mToken,
+                               ".\nDid you mean...\n", utilities::concatenate_container(tKnownComponentsNear, "\n")));
 }
 
 }  // namespace

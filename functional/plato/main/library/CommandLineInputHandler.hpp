@@ -32,6 +32,9 @@ void print_command_line_error_message();
 ///@brief Helper function to print all the known inputs that are defined in the input block structs.
 void print_known_inputs();
 
+///@brief Helper function to print the version and commit of platoengine
+void print_version();
+
 }  // namespace detail
 
 }  // namespace plato::main::library

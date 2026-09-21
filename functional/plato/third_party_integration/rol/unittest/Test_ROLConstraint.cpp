@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <ROL_Bounds.hpp>
+#include <ROL_BoundConstraint.hpp>
 #include <ROL_Ptr.hpp>
 #include <ROL_StdVector.hpp>
 #include <stdexcept>
@@ -23,8 +23,8 @@ auto to_rol_std_vector_ptr(const std::vector<double>& aVector) -> ROL::Ptr<ROL::
     return ROL::makePtr<ROL::StdVector<double>>(tVector);
 }
 
-void test_bounds_behaves_same_as_gold(const ROL::Ptr<ROL::Bounds<double>>& aBounds,
-                                      const ROL::Ptr<ROL::Bounds<double>>& aGoldBounds)
+void test_bounds_behaves_same_as_gold(const ROL::Ptr<ROL::BoundConstraint<double>>& aBounds,
+                                      const ROL::Ptr<ROL::BoundConstraint<double>>& aGoldBounds)
 {
     auto tNegativeOne = to_rol_std_vector_ptr({-1});
     auto tZero = to_rol_std_vector_ptr({0});

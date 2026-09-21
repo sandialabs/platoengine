@@ -78,3 +78,12 @@ Typos in the keywords or incomplete/mismatched `begin` ... `end` will result in 
 If the input deck is successfully parsed, the defined Plato problem will go through validation checks.
 If files are missing, parameters are out of bounds, or required entries are missing, a list of validation errors describing what needs to be fixed will appear and Plato will stop. 
 In general, Plato does not assume default values for inputs and if an input is marked as required, it must be defined.
+
+## Versioning
+
+At the start of a Plato run, after the splash screen, the version of PlatoEngine is printed.
+After the module is loaded, the version can be checked using:
+
+```bash
+plato --version
+```

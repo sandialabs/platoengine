@@ -25,8 +25,9 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/process_manager/extension/DesignVariableTypes.hpp"
 #include "plato/process_manager/extension/DirectionVectorTypes.hpp"
-#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheckWithoutGeometry.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -43,33 +44,34 @@ using ObjectiveGradientCheckFixture = third_party_integration::stk_io::test_util
 [[nodiscard]] auto make_objective_gradient_check_input(const std::filesystem::path& aMeshFile,
                                                        const input_parser::DesignVariableTypes& aDesignVariableType,
                                                        const input_parser::DirectionVectorTypes& aDirectionVectorType)
-    -> input_parser::objective_gradient_check
+    -> input_parser::objective_gradient_check_without_geometry
 {
     constexpr auto tDefaultNumberOfSteps = 10U;
     constexpr auto tDefaultInitialDirectionMagnitude = 0.1;
     constexpr auto tDefaultStepSizeReduction = 0.1;
     constexpr auto tDefaultRandomSeed = 42U;
-    return input_parser::objective_gradient_check{input_parser::FileName{aMeshFile},
-                                                  input_parser::FileName{"output.txt"},
-                                                  aDesignVariableType,
-                                                  /*number_of_steps*/ tDefaultNumberOfSteps,
-                                                  /*initial_direction_magnitude*/ tDefaultInitialDirectionMagnitude,
-                                                  /*step_size_reduction_factor*/ tDefaultStepSizeReduction,
-                                                  /*random_direction_seed*/ tDefaultRandomSeed,
-                                                  aDirectionVectorType};
+    return input_parser::objective_gradient_check_without_geometry{
+        input_parser::FileName{aMeshFile},
+        input_parser::FileName{"output.txt"},
+        aDesignVariableType,
+        /*number_of_steps*/ tDefaultNumberOfSteps,
+        /*initial_direction_magnitude*/ tDefaultInitialDirectionMagnitude,
+        /*step_size_reduction_factor*/ tDefaultStepSizeReduction,
+        /*random_direction_seed*/ tDefaultRandomSeed,
+        aDirectionVectorType};
 }
 
 }  // namespace
 
-TEST(ObjectiveGradientCheck, Registration)
+TEST(ObjectiveGradientCheckWithoutGeometry, Registration)
 {
-    EXPECT_TRUE(library::is_process_manager_function_registered("objective_gradient_check"));
+    EXPECT_TRUE(library::is_process_manager_function_registered("objective_gradient_check_without_geometry"));
 }
 
-TEST(ObjectiveGradientCheck, DetailValidateOutputFileName)
+TEST(ObjectiveGradientCheckWithoutGeometry, DetailValidateOutputFileName)
 {
     const auto tValidateOutputFileName = [](const auto& aInput) { return detail::validate_output_file_name(aInput); };
-    auto tInput = input_parser::objective_gradient_check{};
+    auto tInput = input_parser::objective_gradient_check_without_geometry{};
     plato::test_utilities::expect_input_is_invalid(TEST_CONTEXT("No output file is an error"), tValidateOutputFileName,
                                                    tInput);
     tInput.output_file_name = input_parser::FileName{"dummy.out"};
@@ -77,10 +79,10 @@ TEST(ObjectiveGradientCheck, DetailValidateOutputFileName)
                                                  tValidateOutputFileName, tInput);
 }
 
-TEST(ObjectiveGradientCheck, DetailValidateInputFileName)
+TEST(ObjectiveGradientCheckWithoutGeometry, DetailValidateInputFileName)
 {
     const auto tValidateInputMeshName = [](const auto& aInput) { return detail::validate_input_mesh_name(aInput); };
-    auto tInput = input_parser::objective_gradient_check{};
+    auto tInput = input_parser::objective_gradient_check_without_geometry{};
     plato::test_utilities::expect_input_is_invalid(TEST_CONTEXT("No input file is an error"), tValidateInputMeshName,
                                                    tInput);
     const auto* const tFileName = "dummy.exo";
@@ -98,7 +100,7 @@ TEST_F(ObjectiveGradientCheckFixture, Validation)
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input();
 
-    const auto tInput = tInputBase | input_parser::objective_gradient_check{};
+    const auto tInput = tInputBase | input_parser::objective_gradient_check_without_geometry{};
     const auto tValidatedInput = input_validation::make_validated_input(tInput);
     EXPECT_TRUE(tValidatedInput.hasError());
 
@@ -112,7 +114,8 @@ TEST_F(ObjectiveGradientCheckFixture, Validation)
 namespace
 {
 
-[[nodiscard]] auto validated_input(const input_parser::objective_gradient_check& aCriteriaGradientInput)
+[[nodiscard]] auto validated_input(
+    const input_parser::objective_gradient_check_without_geometry& aCriteriaGradientInput)
 {
     const auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         criteria::library::test_utilities::create_valid_example_objective_input() |
@@ -120,7 +123,8 @@ namespace
     return input_validation::make_validated_input(tInput);
 }
 
-[[nodiscard]] auto validated_process_managers(const input_parser::objective_gradient_check& aCriteriaGradientInput)
+[[nodiscard]] auto validated_process_managers(
+    const input_parser::objective_gradient_check_without_geometry& aCriteriaGradientInput)
 {
     const auto tValidatedInput = validated_input(aCriteriaGradientInput);
     return tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput().back();
@@ -171,7 +175,7 @@ TEST_F(ObjectiveGradientCheckFixture, DetailDesignVariablesOnNodes)
     check_density_values(tNodalDensity, tNumberOfDesignDomainNodes, TEST_CONTEXT("Node centered densities."));
 }
 
-TEST(ObjectiveGradientCheck, DetailPerturbation)
+TEST(ObjectiveGradientCheckWithoutGeometry, DetailPerturbation)
 {
     constexpr auto tSize = std::size_t{5};
     const auto tSeed = detail::Seed{1U};
@@ -231,8 +235,11 @@ TEST_F(ObjectiveGradientCheckFixture, RunCoordinates)
         mMeshFilePath, input_parser::DesignVariableTypes::kCoordinate, input_parser::DirectionVectorTypes::kRandom);
     const auto tProblem = library::make_process_manager_data(validated_input(tInput).value());
     const auto tValidatedCriteriaGradientInput = validated_process_managers(tInput);
-    const auto tObjectiveGradientCheck = ObjectiveGradientCheck{tValidatedCriteriaGradientInput};
-    tObjectiveGradientCheck.run(tProblem);
+    const auto tValidatedInput = validated_input(tInput).value();
+    const auto tProcessManagers =
+        library::make_process_managers(tValidatedInput.get<components::ComponentType::kProcessManager>());
+    ASSERT_EQ(tProcessManagers.size(), 1U);
+    tProcessManagers.front()(tProblem);
 
     ASSERT_TRUE(std::filesystem::exists(tInput.output_file_name.value().mToken));
     constexpr auto tNumberOfHeaderLines = 1U;
@@ -292,7 +299,7 @@ void expect_first_data_row_matches_analytic_quadratic_objective(const std::files
     EXPECT_NEAR(tRelativeErrorFromFile, tRelativeErrorExpected, tTolerance) << aTestContext;
 }
 
-void run_density_gradient_check(const input_parser::objective_gradient_check& aCriteriaGradientInput,
+void run_density_gradient_check(const input_parser::objective_gradient_check_without_geometry& aCriteriaGradientInput,
                                 const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tFullInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
@@ -302,7 +309,7 @@ void run_density_gradient_check(const input_parser::objective_gradient_check& aC
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
     const auto tValidatedCriteriaGradientInput =
         tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput().back();
-    const auto tObjectiveGradientCheck = ObjectiveGradientCheck{tValidatedCriteriaGradientInput};
+    const auto tObjectiveGradientCheck = ObjectiveGradientCheckWithoutGeometry{tValidatedCriteriaGradientInput};
     tObjectiveGradientCheck.run(tProblem);
 
     constexpr auto tElementDensitySize = 3U;
