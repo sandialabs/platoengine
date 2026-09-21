@@ -12,7 +12,7 @@
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/DesignVariableTypes.hpp"
 #include "plato/process_manager/extension/DirectionVectorTypes.hpp"
-#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheckWithoutGeometry.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -39,7 +39,8 @@ const auto kPlatoEngineQuadraticObjectiveInput =
                             /*.normalize_by_initial_value=*/false,
                             /*.objective_goal=*/boost::none};
 
-[[nodiscard]] auto make_parallel_input(const input_parser::objective_gradient_check& aObjectiveGradientCheckInput)
+[[nodiscard]] auto make_parallel_input(
+    const input_parser::objective_gradient_check_without_geometry& aObjectiveGradientCheckInput)
 {
     auto tInput =
         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() | aObjectiveGradientCheckInput;
@@ -54,21 +55,21 @@ const auto kPlatoEngineQuadraticObjectiveInput =
 TEST_F(ObjectiveGradientCheckParallelFixture, ParallelRun)
 {
     const auto tObjectiveGradientCheckInput =
-        input_parser::objective_gradient_check{input_parser::FileName{mMeshFilePath},
-                                               input_parser::FileName{std::string{kOutputFile}},
-                                               input_parser::DesignVariableTypes::kCoordinate,
-                                               /*number_of_steps*/ 10U,
-                                               /*initial_direction_magnitude*/ 0.1,
-                                               /*step_size_reduction_factor*/ 0.1,
-                                               /*random_direction_seed*/ 42U,
-                                               input_parser::DirectionVectorTypes::kRandom};
+        input_parser::objective_gradient_check_without_geometry{input_parser::FileName{mMeshFilePath},
+                                                                input_parser::FileName{std::string{kOutputFile}},
+                                                                input_parser::DesignVariableTypes::kCoordinate,
+                                                                /*number_of_steps*/ 10U,
+                                                                /*initial_direction_magnitude*/ 0.1,
+                                                                /*step_size_reduction_factor*/ 0.1,
+                                                                /*random_direction_seed*/ 42U,
+                                                                input_parser::DirectionVectorTypes::kRandom};
     const auto tInput = make_parallel_input(tObjectiveGradientCheckInput);
     const auto tValidatedInput = input_validation::make_validated_input(tInput);
     ASSERT_FALSE(tValidatedInput.hasError()) << tValidatedInput.error();
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
     const auto tValidatedCriteriaGradientInput =
         tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput().back();
-    const auto tObjectiveGradientCheck = ObjectiveGradientCheck{tValidatedCriteriaGradientInput};
+    const auto tObjectiveGradientCheck = ObjectiveGradientCheckWithoutGeometry{tValidatedCriteriaGradientInput};
     tObjectiveGradientCheck.run(tProblem);
 
     utilities::execute_on_root(boost::mpi::communicator{},

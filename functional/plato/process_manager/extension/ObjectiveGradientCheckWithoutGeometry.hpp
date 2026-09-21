@@ -1,5 +1,5 @@
-#ifndef PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECK
-#define PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECK
+#ifndef PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECKWITHOUTGEOMETRY
+#define PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECKWITHOUTGEOMETRY
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
@@ -22,7 +22,7 @@ struct ProcessManagerData;
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), objective_gradient_check,
+    (plato)(input_parser), objective_gradient_check_without_geometry,
     "A diagnostic tool to evaluate the consistency of the objective gradient independently from the geometry and filtering defined in the Plato problem.",
     (plato::input_parser::FileName, input_mesh_name, "Required filename of the mesh to use to compute the gradient check.")
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
@@ -40,10 +40,10 @@ namespace plato::process_manager::extension
 {
 /// @brief An implementation of a process manager that performs a gradient check using
 ///  Plato's gradient check functionality and does it independently of the geometry.
-class ObjectiveGradientCheck
+class ObjectiveGradientCheckWithoutGeometry
 {
    public:
-    explicit ObjectiveGradientCheck(const library::ValidatedProcessManagerInput& aInput);
+    explicit ObjectiveGradientCheckWithoutGeometry(const library::ValidatedProcessManagerInput& aInput);
 
     /// @brief Take the process manager data @a aProblem and run the objective gradient check.
     void run(const library::ProcessManagerData& aProblem) const;
@@ -88,11 +88,11 @@ namespace detail
 [[nodiscard]] auto default_starting_density() -> double;
 
 /// @brief Validate that an output_file_name is specified in the input @a aInput
-[[nodiscard]] auto validate_output_file_name(const input_parser::objective_gradient_check& aInput)
+[[nodiscard]] auto validate_output_file_name(const input_parser::objective_gradient_check_without_geometry& aInput)
     -> std::optional<std::string>;
 
 /// @brief Validate that an input_mesh_name is specified in the input @a aInput and that the file is on disk.
-[[nodiscard]] auto validate_input_mesh_name(const input_parser::objective_gradient_check& aInput)
+[[nodiscard]] auto validate_input_mesh_name(const input_parser::objective_gradient_check_without_geometry& aInput)
     -> std::optional<std::string>;
 
 /// @brief Generate a set of design variables for the initial configuration using the type specified in the validated
@@ -111,8 +111,8 @@ using Seed = utilities::NamedType<unsigned int, struct SeedTag>;
 }  // namespace detail
 
 template <typename GradientCheckerType>
-auto ObjectiveGradientCheck::gradientCheckTable(const GradientCheckerType& aGradientChecker,
-                                                const linear_algebra::DynamicVector<double>& aDesignVariables) const
+auto ObjectiveGradientCheckWithoutGeometry::gradientCheckTable(
+    const GradientCheckerType& aGradientChecker, const linear_algebra::DynamicVector<double>& aDesignVariables) const
     -> std::string
 {
     auto tPerturbation = linear_algebra::DynamicVector<double>{};
