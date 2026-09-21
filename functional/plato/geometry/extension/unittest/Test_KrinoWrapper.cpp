@@ -319,9 +319,6 @@ void test_expected_sensitivity_information_near_interface_3d_no_snapping_above_c
 /// @note with snapping turned off below cdfem_edge_tolerance no interface nodes will be inserted and sensitivity values
 /// in directions along the edge length should be 1 for nodes 3, 4, 9, and 10 and 0 for the other edge nodes.
 /// @note the orientation of the plane makes sensitivity values negative.
-/// @warning for some reason the second parent node is always set to node 1 for each of the nodes on the interface and
-/// sensitivity values along dimensions not aligned with the plane also have values of 1, which could be problematic. It
-/// is expected that this will be fixed when the MR that properly turns off snapping is merged.
 void test_expected_sensitivity_information_near_interface_3d_no_snapping_below_cdfem_edge_tolerance(
     KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext, const double aTolerance = 1.0e-15)
 {
