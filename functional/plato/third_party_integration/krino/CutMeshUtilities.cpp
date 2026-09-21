@@ -18,6 +18,7 @@
 #include <stk_mesh/base/Types.hpp>
 #include <stk_topology/topology_decl.hpp>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
@@ -32,6 +33,7 @@ namespace
 {
 constexpr auto kSortByGlobalId = true;
 const auto kLevelSetFields = std::vector<std::string>{"LS", "LS_COPYFORSNAPPING"};
+constexpr std::string_view kVoidPhaseSuffix = "_void";
 
 auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
 {
@@ -40,7 +42,7 @@ auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
 
 [[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
 {
-    return (aVoidPhase == VoidPhase::kIncludeInMesh || aPart->name().find("_void") == std::string::npos);
+    return (aVoidPhase == VoidPhase::kIncludeInMesh || aPart->name().find(kVoidPhaseSuffix) == std::string::npos);
 }
 
 [[nodiscard]] auto output_selector(const stk::mesh::MetaData& aMeta,
