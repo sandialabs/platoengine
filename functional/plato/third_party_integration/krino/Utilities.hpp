@@ -13,8 +13,6 @@
 
 namespace plato::third_party_integration::krino
 {
-struct BackgroundMesh;
-
 /// @brief Initialization needed for krino to run correctly. This should only be called once in an executable.
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator);
 
