@@ -218,17 +218,18 @@ void test_expected_sensitivity_information_near_interface_above_cdfem_edge_toler
 /// @note below the cdfem_edge_tolerance, cutting is disabled and node 1 cannot be snapped as it is on a fixed block.
 /// Therefore, sensitivity values in directions along the edge length should be 1 for node 1 and 0 for the other edge
 /// node. Sensitivity values for node 2 and its other edge node are unchanged.
+/// @warning compared to the case when the offset is above the cdfem_edge_tolerance, only two of the
+/// interface-containing edges match (1,5 and 2,4). This means there will be a discontinuity at the cdfem_edge_tolerance
+/// value.
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
-    const double aOffset,
-    KrinoWrapper aWrapper,
-    const ParentNodesMap& aExpectedParentNodes,
-    const plato::test_utilities::TestContext& aTestContext)
+    const double aOffset, KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
     const double tOneMinusOffset = 1.0 - aOffset;
+    const auto tExpectedParentNodes = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     const auto tExpectedSensitivityValues = SensitivityValuesMap{
         {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, aOffset, 0.0}}}};
-    test_krino_sensitivities_against_expected(std::move(aWrapper), aExpectedParentNodes, tExpectedSensitivityValues,
+    test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext);
 }
 
@@ -240,15 +241,13 @@ void test_expected_sensitivity_information_near_interface_below_cdfem_edge_toler
 /// Therefore, sensitivity values in directions along the edge length should be 1 for both nodes 1 and 2 and 0 for the
 /// other edge nodes.
 void test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
-    const double aOffset,
-    KrinoWrapper aWrapper,
-    const ParentNodesMap& aExpectedParentNodes,
-    const plato::test_utilities::TestContext& aTestContext)
+    const double aOffset, KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_LT(aOffset, kCDFEMEdgeTolerance);
+    const auto tExpectedParentNodes = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     const auto tExpectedSensitivityValues =
         SensitivityValuesMap{{1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}};
-    test_krino_sensitivities_against_expected(std::move(aWrapper), aExpectedParentNodes, tExpectedSensitivityValues,
+    test_krino_sensitivities_against_expected(std::move(aWrapper), tExpectedParentNodes, tExpectedSensitivityValues,
                                               aTestContext);
 }
 
@@ -319,6 +318,9 @@ void test_expected_sensitivity_information_near_interface_3d_no_snapping_above_c
 /// @note with snapping turned off below cdfem_edge_tolerance no interface nodes will be inserted and sensitivity values
 /// in directions along the edge length should be 1 for nodes 3, 4, 9, and 10 and 0 for the other edge nodes.
 /// @note the orientation of the plane makes sensitivity values negative.
+/// @warning compared to the case when snapping is off but offset is above cdfem_edge_tolerance, only the first four
+/// interface-containing edges match. This means there will be a discontinuity right at the cdfem_edge_tolerance value
+/// if snapping is off.
 void test_expected_sensitivity_information_near_interface_3d_no_snapping_below_cdfem_edge_tolerance(
     KrinoWrapper aWrapper, const plato::test_utilities::TestContext& aTestContext, const double aTolerance = 1.0e-15)
 {
@@ -636,7 +638,6 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeTolera
 {
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
-    const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
 
     const auto tOffsets = std::array{1.0e-4, 1.0e-9, 1.0e-15};
     const auto tContextStrings = std::array{
@@ -655,7 +656,7 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeTolera
     {
         test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance(
             tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tpik::SnappingParameters{}),
-            tExpectedParentNodesInterfaceBelowTolerance, TEST_CONTEXT(tContextString));
+            TEST_CONTEXT(tContextString));
     }
 }
 
@@ -664,11 +665,9 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeTolera
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
     const auto tSnappingOffParameters = tpik::snapping_off_parameters();
-    const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     constexpr double tOffset = 1.0e-4;
     test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
         tOffset, makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingOffParameters),
-        tExpectedParentNodesInterfaceBelowTolerance,
         TEST_CONTEXT("Offset 1e-4 with snapping disabled - Here the level-set value is below the cdfem edge "
                      "tolerance, meaning that cutting is disabled and both background nodes are treated as if they "
                      "are exactly on the interface."));
