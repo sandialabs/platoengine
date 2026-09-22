@@ -79,25 +79,29 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
 
+    const auto tCutMeshImpl = [&](const auto& aLevelSetFields)
+    {
+        const auto tInterfaceGeometry =
+            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                              tCdfemSupport, tPhaseSupport, aLevelSetFields);
+        tAuxMeta.clear_force_64bit_flag();
+        ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
+    };
+
     if (use_snapping(aSnappingParameters))
     {
         tCdfemSupport.set_cdfem_edge_degeneracy_handling(
             ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
         tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
         tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength.value());
+        const auto& tLevelSetFields =
+            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.levelSetFields());
+        tCutMeshImpl(tLevelSetFields);
     }
-
-    const auto& tLevelSetFields =
-        use_snapping(aSnappingParameters)
-            ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.levelSetFields())
-            : aBackgroundMesh.levelSetFields();
-
-    const auto tInterfaceGeometry =
-        ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                          tCdfemSupport, tPhaseSupport, tLevelSetFields);
-
-    tAuxMeta.clear_force_64bit_flag();
-    ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
+    else
+    {
+        tCutMeshImpl(aBackgroundMesh.levelSetFields());
+    }
 }
 
 auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
