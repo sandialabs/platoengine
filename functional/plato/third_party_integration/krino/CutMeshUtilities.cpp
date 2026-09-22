@@ -36,7 +36,7 @@ constexpr std::string_view kVoidPhaseSuffix = "_void";
 
 auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
 {
-    return aSnappingParameters.mMaxSnappingEdgeLength != 0.0;
+    return aSnappingParameters.mMaxSnappingEdgeLength.has_value();
 }
 
 [[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
@@ -84,7 +84,7 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
         tCdfemSupport.set_cdfem_edge_degeneracy_handling(
             ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
         tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
-        tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
+        tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength.value());
     }
 
     const auto& tLevelSetFields =

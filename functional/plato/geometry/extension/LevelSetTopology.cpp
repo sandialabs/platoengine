@@ -150,9 +150,16 @@ constexpr auto kMeshNameAccessor =
 [[nodiscard]] auto snapping_parameters_from_input(const input_parser::level_set_topology& aInput)
     -> tpik::SnappingParameters
 {
-    constexpr auto tDefaultSnappingEdgeLength = tpik::SnappingParameters{}.mMaxSnappingEdgeLength;
-    return tpik::SnappingParameters{
-        .mMaxSnappingEdgeLength = aInput.max_edge_length_percentage_for_snapping.value_or(tDefaultSnappingEdgeLength)};
+    if (aInput.max_edge_length_percentage_for_snapping.has_value())
+    {
+        const auto tMaxSnappingEdgeLength = aInput.max_edge_length_percentage_for_snapping.value();
+        if (tMaxSnappingEdgeLength == 0.0)
+        {
+            return tpik::snapping_off_parameters();
+        }
+        return tpik::SnappingParameters{.mMaxSnappingEdgeLength = tMaxSnappingEdgeLength};
+    }
+    return tpik::SnappingParameters{};
 }
 }  // namespace
 

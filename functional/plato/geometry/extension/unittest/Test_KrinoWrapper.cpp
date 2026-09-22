@@ -663,7 +663,7 @@ TEST_F(FourTriTwoBlockKrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeTolera
 {
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
-    const auto tSnappingOffParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    const auto tSnappingOffParameters = tpik::snapping_off_parameters();
     const auto tExpectedParentNodesInterfaceBelowTolerance = ParentNodesMap{{1, {1, 5}}, {2, {2, 4}}};
     constexpr double tOffset = 1.0e-4;
     test_expected_sensitivity_information_near_interface_below_cdfem_edge_tolerance_no_snapping(
@@ -700,7 +700,7 @@ TEST_F(TetBlock1x2x1KrinoFixture, SensitivityNearInterfaceAboveCDFEMEdgeToleranc
         std::string{"Offset 1.001E-3 no snapping - Offset is just above cdfem edge tolerance. Sensitivity values "
                     "should exist for all edges and should match to 1E-15."}};
     constexpr double tTolerance = 1.0e-15;
-    const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    const auto tSnappingParameters = tpik::snapping_off_parameters();
     for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
         test_expected_sensitivity_information_near_interface_3d_no_snapping_above_cdfem_edge_tolerance(
@@ -723,7 +723,7 @@ TEST_F(TetBlock1x2x1KrinoFixture, SensitivityNearInterfaceBelowCDFEMEdgeToleranc
                     "the nodes on the interface. The sensitivity values along dimensions not aligned with the "
                     "plane also have values of 1, which could be problematic."}};
     constexpr double tTolerance = 1.0e-16;
-    const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+    const auto tSnappingParameters = tpik::snapping_off_parameters();
     for (const auto& [tOffset, tContextString] : utilities::Zip{tOffsets, tContextStrings})
     {
         test_expected_sensitivity_information_near_interface_3d_no_snapping_below_cdfem_edge_tolerance(
