@@ -6,7 +6,7 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
-#include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
@@ -35,7 +35,7 @@ TEST(ValidateCommonInput, ValidateMaxIterations)
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)
 {
-    auto tGradientCheck = input_parser::gradient_check{};
+    auto tGradientCheck = input_parser::objective_gradient_check{};
     EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
 
     auto tConstraintCheck = input_parser::constraint_check{};
@@ -50,7 +50,7 @@ TEST(ValidateCommonInput, ValidateNumberOfSteps)
 
 TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 {
-    auto tGradientCheck = input_parser::gradient_check{};
+    auto tGradientCheck = input_parser::objective_gradient_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
 
     auto tConstraintCheck = input_parser::constraint_check{};
@@ -71,7 +71,7 @@ TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 
 TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 {
-    auto tGradientCheck = input_parser::gradient_check{};
+    auto tGradientCheck = input_parser::objective_gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
     auto tConstraintCheck = input_parser::constraint_check{};
@@ -92,7 +92,7 @@ TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 
 TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
 {
-    auto tGradientCheck = input_parser::gradient_check{};
+    auto tGradientCheck = input_parser::objective_gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
     auto tConstraintCheck = input_parser::constraint_check{};

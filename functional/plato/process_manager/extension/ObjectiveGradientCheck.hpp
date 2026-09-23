@@ -1,5 +1,5 @@
-#ifndef PLATO_PROCESSMANAGER_EXTENSION_GRADIENTCHECK
-#define PLATO_PROCESSMANAGER_EXTENSION_GRADIENTCHECK
+#ifndef PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECK
+#define PLATO_PROCESSMANAGER_EXTENSION_OBJECTIVEGRADIENTCHECK
 
 #include <filesystem>
 #include <optional>
@@ -12,7 +12,7 @@
 
 namespace plato::input_parser
 {
-struct gradient_check;
+struct objective_gradient_check;
 }
 
 namespace plato::process_manager::library
@@ -22,7 +22,7 @@ struct ProcessManagerData;
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), gradient_check,
+    (plato)(input_parser), objective_gradient_check,
     "A diagnostic tool to evaluate the consistency of the full objective gradient defined in the Plato problem.",
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (unsigned, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
@@ -38,10 +38,10 @@ namespace plato::process_manager::extension
 {
 /// @brief An implementation of a process manager that performs a gradient check using
 ///  ROL's gradient check functionality.
-class GradientCheck
+class ObjectiveGradientCheck
 {
    public:
-    explicit GradientCheck(const library::ValidatedProcessManagerInput& aInput);
+    explicit ObjectiveGradientCheck(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProblem) const;
 
@@ -58,7 +58,8 @@ namespace detail
 {
 
 /// @brief Validate that an output_file_name is specified in the input @a aInput
-[[nodiscard]] auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_output_file_name(const input_parser::objective_gradient_check& aInput)
+    -> std::optional<std::string>;
 
 }  // namespace detail
 

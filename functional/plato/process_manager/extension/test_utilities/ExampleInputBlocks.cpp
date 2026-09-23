@@ -5,7 +5,7 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/DirectionVectorTypes.hpp"
-#include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/SensitivityCheck.hpp"
 
@@ -28,18 +28,19 @@ auto create_valid_example_constraint_check_input() -> input_parser::constraint_c
         /*.direction_vector_type = */ input_parser::DirectionVectorTypes::kRandom};
 }
 
-auto create_valid_example_gradient_check_input() -> input_parser::gradient_check
+auto create_valid_example_gradient_check_input() -> input_parser::objective_gradient_check
 {
     constexpr auto tArbitraryNumberOfSteps = 12U;
     constexpr auto tArbitraryInitialDirectionMagnitude = 0.5;
     constexpr auto tArbitraryStepSizeReductionFactor = 0.5;
     constexpr auto tArbitraryRandomSeed = 123;
-    return input_parser::gradient_check{/*.output_file_name=*/input_parser::FileName{"gradient_check.txt"},
-                                        /*.number_of_steps=*/tArbitraryNumberOfSteps,
-                                        /*.initial_direction_magnitude=*/tArbitraryInitialDirectionMagnitude,
-                                        /*.step_size_reduction_factor = */ tArbitraryStepSizeReductionFactor,
-                                        /*.random_direction_seed = */ tArbitraryRandomSeed,
-                                        /*.direction_vector_type = */ input_parser::DirectionVectorTypes::kRandom};
+    return input_parser::objective_gradient_check{
+        /*.output_file_name=*/input_parser::FileName{"objective_gradient_check.txt"},
+        /*.number_of_steps=*/tArbitraryNumberOfSteps,
+        /*.initial_direction_magnitude=*/tArbitraryInitialDirectionMagnitude,
+        /*.step_size_reduction_factor = */ tArbitraryStepSizeReductionFactor,
+        /*.random_direction_seed = */ tArbitraryRandomSeed,
+        /*.direction_vector_type = */ input_parser::DirectionVectorTypes::kRandom};
 }
 
 auto create_valid_example_rol_optimization_input() -> input_parser::rol_optimization

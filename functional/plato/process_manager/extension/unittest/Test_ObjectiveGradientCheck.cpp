@@ -10,10 +10,11 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -29,7 +30,7 @@ template <typename BlockType>
                          { return aInput.rawInput().mBlockName == input_parser::block_name<BlockType>(); });
 }
 
-TEST(GradientCheck, CreateGradientCheckRun)
+TEST(ObjectiveGradientCheck, CreateGradientCheckRun)
 {
     const auto tCheckGradientCheckRuns =
         [](const input_parser::ParsedInput& aParsedInput, const plato::test_utilities::TestContext& aTestContext)
@@ -39,12 +40,12 @@ TEST(GradientCheck, CreateGradientCheckRun)
         const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
         const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
         ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
-        const auto tGradientCheck = GradientCheck{tAllProcessManagerInputs.rawInput().back()};
-        tGradientCheck.run(tProblem);
-
+        const auto tProcessManagers = library::make_process_managers(tAllProcessManagerInputs);
+        ASSERT_EQ(tProcessManagers.size(), 1U);
+        tProcessManagers.front()(tProblem);
         const auto tGradientCheckFilePath = aParsedInput.get<components::ComponentType::kProcessManager>()
                                                 .front()
-                                                .mInput.get<input_parser::gradient_check>()
+                                                .mInput.get<input_parser::objective_gradient_check>()
                                                 .output_file_name;
 
         plato::test_utilities::test_for_existence_and_remove(
@@ -66,7 +67,7 @@ TEST(GradientCheck, CreateGradientCheckRun)
     }
 }
 
-TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
+TEST(ObjectiveGradientCheck, UnwrapValidatedGradientCheckInput)
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
@@ -78,7 +79,7 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
         tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput();
 
     constexpr auto tExpectedNumGradientCheckInputs = std::size_t{1};
-    EXPECT_EQ(num_blocks_with_type<input_parser::gradient_check>(tUnwrappedValidatedInput),
+    EXPECT_EQ(num_blocks_with_type<input_parser::objective_gradient_check>(tUnwrappedValidatedInput),
               tExpectedNumGradientCheckInputs);
 
     constexpr auto tExpectedNumROLOptimizerInputs = std::size_t{1};
@@ -89,6 +90,9 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
     EXPECT_EQ(tUnwrappedValidatedInput.size(), tExpectedTotalProcessManagerInputs);
 }
 
-TEST(GradientCheck, Registration) { EXPECT_TRUE(library::is_process_manager_function_registered("gradient_check")); }
+TEST(ObjectiveGradientCheck, Registration)
+{
+    EXPECT_TRUE(library::is_process_manager_function_registered("objective_gradient_check"));
+}
 
 }  // namespace plato::process_manager::extension::unittest
