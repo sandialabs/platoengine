@@ -41,22 +41,23 @@ namespace
 
 constexpr auto kDefaultDensityValue = 0.5;
 
-[[nodiscard]] auto make_objective_gradient_check_process_manager(
+[[nodiscard]] auto make_objective_gradient_check_without_geometry_process_manager(
     const library::ValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
             { ObjectiveGradientCheckWithoutGeometry{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] const auto kObjectiveGradientCheckParserRegistration =
+[[maybe_unused]] const auto kObjectiveGradientCheckWithoutGeometryParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::objective_gradient_check_without_geometry>{};
 
-[[maybe_unused]] const auto kObjectiveGradientCheckProcessManagerRegistration = library::ProcessManagerRegistration{
-    input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
-    [](const library::ValidatedProcessManagerInput& aValidInput)
-    { return make_objective_gradient_check_process_manager(aValidInput); }};
+[[maybe_unused]] const auto kObjectiveGradientCheckWithoutGeometryProcessManagerRegistration =
+    library::ProcessManagerRegistration{
+        input_parser::block_name<input_parser::objective_gradient_check_without_geometry>(),
+        [](const library::ValidatedProcessManagerInput& aValidInput)
+        { return make_objective_gradient_check_without_geometry_process_manager(aValidInput); }};
 
-[[maybe_unused]] const auto kObjectiveGradientCheckValidationRegistration =
+[[maybe_unused]] const auto kObjectiveGradientCheckWithoutGeometryValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::objective_gradient_check_without_geometry& aInput)
         { return detail::validate_output_file_name(aInput); },
@@ -83,7 +84,8 @@ constexpr auto kDefaultDensityValue = 0.5;
                 aInput.design_variable_type, "design_variable_type");
         }};
 
-[[nodiscard]] auto objective_gradient_check_input(const library::ValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto objective_gradient_check_without_geometry_input(
+    const library::ValidatedProcessManagerInput& aValidInput)
     -> const input_parser::objective_gradient_check_without_geometry&
 {
     return input_validation::get_input_block<input_parser::objective_gradient_check_without_geometry>(aValidInput);
@@ -104,14 +106,15 @@ constexpr auto kDefaultDensityValue = 0.5;
 
 ObjectiveGradientCheckWithoutGeometry::ObjectiveGradientCheckWithoutGeometry(
     const library::ValidatedProcessManagerInput& aInput)
-    : mInputMeshName(objective_gradient_check_input(aInput).input_mesh_name.value().mToken),
-      mOutputFileName(objective_gradient_check_input(aInput).output_file_name.value().mToken),
-      mDesignVariableType(objective_gradient_check_input(aInput).design_variable_type.value()),
-      mGradientCheckParameters(objective_gradient_check_input(aInput).step_size_reduction_factor.value(),
-                               objective_gradient_check_input(aInput).number_of_steps.value(),
-                               objective_gradient_check_input(aInput).initial_direction_magnitude.value()),
-      mDirectionVectorType(objective_gradient_check_input(aInput).direction_vector_type.value()),
-      mSeed(objective_gradient_check_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
+    : mInputMeshName(objective_gradient_check_without_geometry_input(aInput).input_mesh_name.value().mToken),
+      mOutputFileName(objective_gradient_check_without_geometry_input(aInput).output_file_name.value().mToken),
+      mDesignVariableType(objective_gradient_check_without_geometry_input(aInput).design_variable_type.value()),
+      mGradientCheckParameters(
+          objective_gradient_check_without_geometry_input(aInput).step_size_reduction_factor.value(),
+          objective_gradient_check_without_geometry_input(aInput).number_of_steps.value(),
+          objective_gradient_check_without_geometry_input(aInput).initial_direction_magnitude.value()),
+      mDirectionVectorType(objective_gradient_check_without_geometry_input(aInput).direction_vector_type.value()),
+      mSeed(objective_gradient_check_without_geometry_input(aInput).random_direction_seed.value_or(fixed_seed_value()))
 {
 }
 
