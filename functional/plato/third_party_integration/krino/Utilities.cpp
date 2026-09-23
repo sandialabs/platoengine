@@ -1,99 +1,26 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>    // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>  //CDFEM_Support
-#include <Akri_CDMesh.hpp>         //sierraTimer
-#include <Akri_CreateInterfaceGeometry.hpp>
-#include <Akri_LevelSet.hpp>  //LevelSet
-#include <Akri_LevelSetShapeSensitivities.hpp>
-#include <Akri_MeshHelpers.hpp>           //activate_all_entities
-#include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
-#include <Akri_OutputUtils.hpp>
-#include <Akri_Phase_Support.hpp>
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
-#include <filesystem>
 #include <iterator>
-#include <memory>
-#include <set>
-#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
-#include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
-#include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_topology/topology_decl.hpp>
-#include <stk_util/diag/Timer.hpp>
 #include <stk_util/environment/EnvData.hpp>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
-#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
-#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
-#include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
-#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
-#include "plato/utilities/ReduceUtilities.hpp"
-#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::third_party_integration::krino
 {
 namespace
 {
+constexpr auto kLevelSetName = std::string_view{"LS"};
+constexpr auto kVoidPhaseName = std::string_view{"void"};
 constexpr auto kSortByGlobalId = true;
-constexpr auto kDecompositionMethod = std::string_view{"rib"};
-constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
-const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
-
-[[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
-{
-    return (aVoidPhase == VoidPhase::kIncludeInMesh || aPart->name().find("_void") == std::string::npos);
-}
-
-[[nodiscard]] auto output_selector(const stk::mesh::MetaData& aMeta,
-                                   const stk::mesh::Part& aActivePart,
-                                   const VoidPhase aVoidPhase) -> stk::mesh::Selector
-{
-    const auto tOutputCondition = [aVoidPhase](const auto aPartPtr) -> bool
-    { return stk::io::is_part_io_part(*aPartPtr) && include_void_region_part(aVoidPhase, aPartPtr); };
-
-    stk::mesh::PartVector tOutputParts;
-    utilities::transform_if(
-        aMeta.get_parts(), std::back_inserter(tOutputParts), [](const auto aPartPtr) { return aPartPtr; },
-        tOutputCondition);
-
-    return aActivePart & stk::mesh::selectUnion(tOutputParts);
-}
-
-void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
-{
-    ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
-    const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
-
-    tCdfemSupport.set_coords_field(tCoordsField);
-    tCdfemSupport.add_edge_interpolation_field(tCoordsField);
-    tCdfemSupport.register_parent_node_ids_field();
-    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta,
-                                                                  ::krino::Phase_Support::get_levelset_fields(aMeta));
-    tCdfemSupport.register_cdfem_snap_displacements_field();
-    tCdfemSupport.finalize_fields();
-}
-
-[[nodiscard]] auto get_ids_from_entities(const std::vector<stk::mesh::Entity>& aEntities,
-                                         const stk::mesh::BulkData& aBulkData) -> std::vector<stk::mesh::EntityId>
-{
-    auto tIds = utilities::reserved_container<std::vector<stk::mesh::EntityId>>(aEntities.size());
-    std::ranges::transform(aEntities, std::back_inserter(tIds),
-                           [&aBulkData](const auto aEntity) { return aBulkData.entity_key(aEntity).id(); });
-
-    std::ranges::sort(tIds);
-
-    return tIds;
-}
-
 }  // namespace
 
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator)
@@ -106,150 +33,25 @@ auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
     return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
 }
 
-auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
-                                      const std::set<std::string>& aExcludedBlocks)
-    -> std::unique_ptr<::krino::MeshInterface>
-{
-    assert(std::filesystem::exists(aFilename));
-
-    auto tMeshFromFile = std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
-                                                                     std::string{kDecompositionMethod});
-
-    setup_level_sets(*tMeshFromFile, aExcludedBlocks);
-
-    auto& tLevelSet =
-        ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
-    tLevelSet.set_levelset_field_name(std::string{kLevelSetName});
-    tLevelSet.setup();
-    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
-    tMeshFromFile->populate_mesh();
-    ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
-                                   ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    return tMeshFromFile;
-}
-
-auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                          const stk::mesh::BulkData& aBulkData) -> std::vector<::krino::LS_Field>
-{
-    auto tInitializationSurfaces = make_krino_composite_surface();
-    append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
-    append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
-
-    std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aBulkData.mesh_meta_data());
-    ::krino::compute_nodal_surface_distance(aBulkData, aBulkData.mesh_meta_data().coordinate_field(),
-                                            tField.front().isovar, tInitializationSurfaces);
-    return tField;
-}
-
-auto get_level_set_fields(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>
-{
-    return ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
-}
-
-auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
-                         const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
-{
-    const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-    return utilities::unique_vector_gather(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()),
-                                           retrieve_mpi_communicator_from_krino());
-}
-
-namespace
-{
-[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> stk::mesh::EntityVector
-{
-    const auto tSelector = output_selector(aKrinoMesh.meta_data(),
-                                           ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
-
-    stk::mesh::EntityVector tNodes;
-    stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
-                                     kSortByGlobalId);
-    return tNodes;
-}
-
-}  // namespace
-
-auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>
-{
-    const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
-    return utilities::unique_vector_gather(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()),
-                                           retrieve_mpi_communicator_from_krino());
-}
-
-void cut_mesh(stk::mesh::BulkData& aBulkData,
-              const std::vector<::krino::LS_Field>& aLevelSetFields,
-              const SnappingParameters aSnappingParameters)
-{
-    const auto& tMeta = aBulkData.mesh_meta_data();
-    auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
-    auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
-    tCdfemSupport.set_cdfem_edge_degeneracy_handling(
-        ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
-    tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
-    tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
-    auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
-    const auto tSnapLevelSetFields = ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aLevelSetFields);
-    auto tInterfaceGeometry =
-        ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                          tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
-    tAuxMeta.clear_force_64bit_flag();
-    ::krino::CDMesh::decompose_mesh(aBulkData, *tInterfaceGeometry);
-}
+auto sort_by_global_id() -> bool { return kSortByGlobalId; }
 
 auto get_level_set_field_name() -> std::string { return std::string{kLevelSetName}; }
 
-auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
-                          const std::vector<::krino::LS_Field>& aLevelSetFields)
-    -> std::unordered_map<stk::mesh::EntityId, double>
+auto void_phase_name() -> std::string_view { return kVoidPhaseName; }
+
+namespace detail
 {
-    const auto tNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-
-    auto tLevelSetValues =
-        utilities::reserved_container<std::unordered_map<stk::mesh::EntityId, double>>(tNodes.size());
-
-    std::ranges::transform(tNodes, std::inserter(tLevelSetValues, tLevelSetValues.begin()),
-                           [&aKrinoMesh, &aLevelSetFields](const auto& aNode)
-                           {
-                               const auto tId = aKrinoMesh.bulk_data().entity_key(aNode).id();
-                               return std::make_pair(tId, level_set_value(aLevelSetFields, aNode));
-                           });
-
-    return utilities::reduce_map(tLevelSetValues, retrieve_mpi_communicator_from_krino());
-}
-
-auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
-                           const std::vector<::krino::LS_Field>& aLevelSetFields) -> stk::mesh::EntityVector
+[[nodiscard]] auto get_ids_from_entities(const std::vector<stk::mesh::Entity>& aEntities,
+                                         const stk::mesh::BulkData& aBulkData) -> std::vector<stk::mesh::EntityId>
 {
-    const ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
-    const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(aLevelSetFields.front().isovar) & !tCdfemSupport.get_child_node_part();
-    stk::mesh::EntityVector tNodes;
-    stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
-                                     kSortByGlobalId);
-    return tNodes;
+    auto tIds = utilities::reserved_container<std::vector<stk::mesh::EntityId>>(aEntities.size());
+    std::ranges::transform(aEntities, std::back_inserter(tIds),
+                           [&aBulkData](const auto aEntity) { return aBulkData.entity_key(aEntity).id(); });
+
+    std::ranges::sort(tIds);
+
+    return tIds;
 }
-
-auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase) -> stk::mesh::Selector
-{
-    const auto tOutputSelector = output_selector(
-        aBulkData.mesh_meta_data(), ::krino::AuxMetaData::get(aBulkData.mesh_meta_data()).active_part(), aVoidPhase);
-
-    ::krino::fix_face_and_edge_ownership_to_assure_selected_owned_element(aBulkData, tOutputSelector);
-    ::krino::fix_node_ownership_to_assure_selected_owned_element(aBulkData, tOutputSelector);
-
-    return tOutputSelector;
-}
-
-void write_mesh(const stk::mesh::BulkData& aBulkData,
-                const std::filesystem::path& aOutputFileName,
-                const stk::mesh::Selector& aSelector)
-{
-    constexpr auto tStepIndex = 1;
-    constexpr auto tTime = 0.0;
-    ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime,
-                                              stk::io::WRITE_RESULTS, kLevelSetFields);
-}
+}  // namespace detail
 
 }  // namespace plato::third_party_integration::krino

@@ -1,3 +1,6 @@
+#ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_MESHFROMFILEWITHOUTFIELDS
+#define PLATO_THIRD_PARTY_INTEGRATION_KRINO_MESHFROMFILEWITHOUTFIELDS
+
 #include <Akri_MeshFromFile.hpp>
 #include <filesystem>
 #include <memory>
@@ -31,3 +34,5 @@ class MeshFromFileWithoutFields : public ::krino::MeshInterface
     std::unique_ptr<stk::io::StkMeshIoBroker> mIOBroker;
 };
 }  // namespace plato::third_party_integration::krino
+
+#endif

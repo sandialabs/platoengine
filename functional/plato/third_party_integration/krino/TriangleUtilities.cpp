@@ -16,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"

@@ -2,14 +2,19 @@
 
 #include <gtest/gtest.h>
 
-#include <Akri_Phase_Support.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
+#include <set>
 #include <stk_mesh/base/Types.hpp>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -49,28 +54,28 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField = make_level_set_field_from_primitives(
-        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tMesh->bulk_data());
-    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = background_mesh_from_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
 
-    const auto tResult = background_node_ids(*tMesh, tLevelSetField);
+    const auto tResult = background_node_ids(tBackgroundMesh);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7};
     EXPECT_EQ(tGold, tResult) << aTestContext;
 }
 
-auto make_level_set_field_from_vector(::krino::MeshInterface& aKrinoMesh, const std::vector<double>& aVector)
-    -> std::vector<::krino::LS_Field>
+auto background_mesh_from_vector(const std::filesystem::path& aFileName,
+                                 const std::vector<double>& aVector,
+                                 const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
 {
+    auto tBackgroundMesh = detail::initialize_background_mesh(aFileName, aExcludedBlocks);
     assert(boost::mpi::communicator{}.size() == 1);
-    std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
-    const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
+    const auto tNodes = node_entities_in_mesh(tBackgroundMesh);
     assert(tNodes.size() == aVector.size());
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
     {
-        level_set_value(tField, tNode) = tValue;
+        level_set_value(tBackgroundMesh.levelSetFields(), tNode) = tValue;
     }
-    return tField;
+    return tBackgroundMesh;
 }
 
 }  // namespace plato::third_party_integration::krino::test_utilities

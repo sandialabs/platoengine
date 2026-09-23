@@ -25,7 +25,7 @@
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/SystemLogger.hpp"
-#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"

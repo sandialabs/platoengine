@@ -112,8 +112,8 @@ using Seed = utilities::NamedType<unsigned int, struct SeedTag>;
 
 template <typename GradientCheckerType>
 auto ObjectiveGradientCheckWithoutGeometry::gradientCheckTable(
-    const GradientCheckerType& aGradientChecker, const linear_algebra::DynamicVector<double>& aDesignVariables) const
-    -> std::string
+    const GradientCheckerType& aGradientChecker,
+    const linear_algebra::DynamicVector<double>& aDesignVariables) const -> std::string
 {
     auto tPerturbation = linear_algebra::DynamicVector<double>{};
 

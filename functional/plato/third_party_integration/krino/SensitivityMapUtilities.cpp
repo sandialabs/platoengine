@@ -1,8 +1,6 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 
-#include <Akri_LevelSet.hpp>  //LevelSet
 #include <Akri_LevelSetShapeSensitivities.hpp>
-#include <Akri_Phase_Support.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <cassert>
@@ -12,17 +10,17 @@
 #include <vector>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 
 namespace plato::third_party_integration::krino
 {
-auto get_krino_sensitivities(const stk::mesh::BulkData& aBulkData,
-                             const std::vector<::krino::LS_Field>& aLevelSetFields)
-    -> std::vector<::krino::LevelSetShapeSensitivity>
+auto get_krino_sensitivities(const BackgroundMesh& aBackgroundMesh) -> std::vector<::krino::LevelSetShapeSensitivity>
 {
     constexpr auto tComputeClosestPointSensitivities = false;
-    return ::krino::get_levelset_shape_sensitivities(aBulkData, aLevelSetFields, tComputeClosestPointSensitivities)
+    return ::krino::get_levelset_shape_sensitivities(aBackgroundMesh.bulkData(), aBackgroundMesh.levelSetFields(),
+                                                     tComputeClosestPointSensitivities)
         .front();
 }
 

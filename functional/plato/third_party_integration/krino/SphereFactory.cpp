@@ -10,7 +10,7 @@
 
 namespace plato::third_party_integration::krino
 {
-auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>
+auto generate_spheres(const SpherePatternData& aData) -> std::vector<Sphere>
 {
     const SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
 
@@ -53,7 +53,7 @@ using IntegerCoordinate = utilities::NamedType<common::Coordinate, struct Intege
 }
 }  // namespace
 
-auto calculate_num_spheres_in_each_direction(const SpherePatternData &aData) -> common::Coordinate
+auto calculate_num_spheres_in_each_direction(const SpherePatternData& aData) -> common::Coordinate
 {
     constexpr double tNumDirectionsFromCenterSphere = 2.0;
     constexpr double tCenterSphere = 1.0;
@@ -67,8 +67,8 @@ auto calculate_num_spheres_in_each_direction(const SpherePatternData &aData) -> 
         tCenterSphere};
 }
 
-auto calculate_sphere_pattern_start(const common::Coordinate &aNumSpheres,
-                                    const SpherePatternData &aData) -> common::Coordinate
+auto calculate_sphere_pattern_start(const common::Coordinate& aNumSpheres,
+                                    const SpherePatternData& aData) -> common::Coordinate
 {
     constexpr double tNumDirectionsFromCenterSphere = 2.0;
     constexpr double tCenterSphere = 1.0;
@@ -93,7 +93,7 @@ auto create_sphere_spacing_vector(const unsigned int aNumValues,
     return tValues;
 }
 
-auto calculate_sphere_locator_data(const SpherePatternData &aData) -> SphereLocatorData
+auto calculate_sphere_locator_data(const SpherePatternData& aData) -> SphereLocatorData
 {
     const common::Coordinate tNumSpheres = calculate_num_spheres_in_each_direction(aData);
     const common::Coordinate tSpherePatternStart = calculate_sphere_pattern_start(tNumSpheres, aData);

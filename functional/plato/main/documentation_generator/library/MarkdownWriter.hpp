@@ -7,6 +7,6 @@ namespace plato::main::documentation_generator::library
 {
 /// @brief Writes all documentation defined in to a set of markdown files.
 void write_markdown_documentation(const HelpDocumentationMap& aDocumentation);
-}  // namespace plato::documentation::documentation_generator::library
+}  // namespace plato::main::documentation_generator::library
 
 #endif

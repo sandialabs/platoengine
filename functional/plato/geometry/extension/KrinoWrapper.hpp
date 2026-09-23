@@ -4,14 +4,14 @@
 #include <Akri_LevelSet.hpp>
 #include <Akri_LevelSetPolicy.hpp>
 #include <filesystem>
-#include <memory>
 #include <utility>
 #include <vector>
 
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
-#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
 
@@ -37,8 +37,7 @@ class KrinoWrapper
     /// @a aVoidPhase specifies at construction whether to include or exclude the void region in sensitivities and in
     /// writing the mesh to disk.
     /// @note See helper functions for the most common methods to create a KrinoWrapper
-    KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
-                 std::vector<::krino::LS_Field> aLevelSetField,
+    KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackgroundMesh,
                  third_party_integration::krino::VoidPhase aVoidPhase,
                  third_party_integration::krino::SnappingParameters aSnappingParameters);
 
@@ -57,8 +56,7 @@ class KrinoWrapper
         -> std::vector<double>;
 
    private:
-    std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
-    std::vector<::krino::LS_Field> mLevelSetFields;
+    third_party_integration::krino::BackgroundMesh mBackgroundMesh;
     std::size_t mNumberOfDesignDomainBackgroundNodes;
     third_party_integration::krino::SensitivityMap mSensitivityMap;
     stk::mesh::Selector mSelector;
@@ -90,19 +88,17 @@ using LevelSetBounds = utilities::NamedType<std::pair<double, double>, struct Le
 
 namespace detail
 {
-/// @brief Take a krino mesh's bulk data @a aBulkData, its level set fields in @a aLevelSetFields, along with the design
+/// @brief Take a krino mesh's bulk data and level set fields stored in @a aBackgroundMesh, along with the design
 /// domain ids @a aDesignDomainBackgroundNodes and compute the SensitivityMap. The map takes cut mesh surface node ids
 /// and maps them to LevelSetJacobianColumn which is a list of Parent Ids along with their sensitivities. If a parent is
 /// a fixed node and not part of the @a aDesignDomainBackgroundNodes it is not included in the sensitivty map.
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
 /// set_stk_communicator_for_krino(...);
-/// read_and_setup_for_decomposition(...);
 /// cut_mesh(...);
 /// @endcode
 [[nodiscard]] auto compute_sensitivities(
-    const stk::mesh::BulkData& aBulkData,
-    const std::vector<::krino::LS_Field>& aLevelSetFields,
+    const third_party_integration::krino::BackgroundMesh& aBackgroundMesh,
     const std::vector<third_party_integration::krino::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> third_party_integration::krino::SensitivityMap;
 

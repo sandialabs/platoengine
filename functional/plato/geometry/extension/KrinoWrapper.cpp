@@ -7,22 +7,21 @@
 #include <cstddef>
 #include <filesystem>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <set>
-#include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_topology/topology_decl.hpp>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/components/ComponentType.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -42,50 +41,28 @@ namespace
 {
 namespace tpik = third_party_integration::krino;
 
-void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
-                          std::vector<::krino::LS_Field>& aLevelSetFields,
-                          const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-{
-    for (const analysis::ScalarFieldValue tScalarFieldValue :
-         analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
-    {
-        const auto tStkEntity =
-            aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-
-        if (tStkEntity != stk::mesh::Entity::InvalidEntity)
-        {
-            tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
-        }
-    }
-}
-
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
-    stk::mesh::BulkData& aBulkData,
-    const std::vector<::krino::LS_Field>& aLevelSetFields,
+    const tpik::BackgroundMesh& aBackgroundMesh,
     const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes,
     const tpik::SnappingParameters aSnappingParameters) -> tpik::SensitivityMap
 {
     [[maybe_unused]] const auto tScopedLogger =
         services::ScopedExternalRedirectLogger{components::ComponentType::kGeometry, "krino-wrapper"};
 
-    tpik::cut_mesh(aBulkData, aLevelSetFields, aSnappingParameters);
-    return detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes);
+    tpik::cut_mesh(aBackgroundMesh, aSnappingParameters);
+    return detail::compute_sensitivities(aBackgroundMesh, aDesignDomainBackgroundNodes);
 }
 
 }  // namespace
 
-KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
-                           std::vector<::krino::LS_Field> aLevelSetField,
+KrinoWrapper::KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackgroundMesh,
                            const third_party_integration::krino::VoidPhase aVoidPhase,
                            const tpik::SnappingParameters aSnappingParameters)
-    : mKrinoMesh(std::move(aKrinoMeshInterface)),
-      mLevelSetFields(std::move(aLevelSetField)),
-      mNumberOfDesignDomainBackgroundNodes(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields).size()),
-      mSensitivityMap(cut_mesh_compute_sensitivities(mKrinoMesh->bulk_data(),
-                                                     mLevelSetFields,
-                                                     tpik::background_node_ids(*mKrinoMesh, mLevelSetFields),
-                                                     aSnappingParameters)),
-      mSelector(tpik::create_output_selector(mKrinoMesh->bulk_data(), aVoidPhase)),
+    : mBackgroundMesh(std::move(aBackgroundMesh)),
+      mNumberOfDesignDomainBackgroundNodes(tpik::background_node_ids(mBackgroundMesh).size()),
+      mSensitivityMap(cut_mesh_compute_sensitivities(
+          mBackgroundMesh, tpik::background_node_ids(mBackgroundMesh), aSnappingParameters)),
+      mSelector(tpik::create_output_selector(mBackgroundMesh.bulkData(), aVoidPhase)),
       mVoidPhase(aVoidPhase)
 
 {
@@ -93,7 +70,7 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName) const
 {
-    tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, mSelector);
+    tpik::write_cut_mesh(mBackgroundMesh.bulkData(), aFileName, mSelector);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }
@@ -183,16 +160,16 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, mBackgroundMesh.krinoMesh(), mVoidPhase,
                                      ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
 
 auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
     -> std::vector<double>
 {
-    const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mKrinoMesh->bulk_data());
-    const auto tResultSize = tpik::cut_mesh_node_ids(*mKrinoMesh, mVoidPhase).size() * tViewDimension;
-    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+    const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mBackgroundMesh.bulkData());
+    const auto tResultSize = tpik::cut_mesh_node_ids(mBackgroundMesh.krinoMesh(), mVoidPhase).size() * tViewDimension;
+    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, mBackgroundMesh.krinoMesh(), mVoidPhase,
                                      ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
                                      kAdjointJacobianImpl);
 }
@@ -222,10 +199,9 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
                                                   const std::set<std::string>& aFixedBlocks,
                                                   const LevelSetBounds& aBounds) -> std::vector<double>
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName, aFixedBlocks);
-    auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
-    const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
-    const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
+    const auto tBackgroundMesh = tpik::background_mesh_from_primitives(aFileName, aLevelSetPrimitives, aFixedBlocks);
+    const auto tLevelSetValuesMap = tpik::get_level_set_values(tBackgroundMesh);
+    const auto tBackgroundNodeIds = tpik::background_node_ids(tBackgroundMesh);
 
     return detail::clamp_to_bounds(down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds), aBounds);
 }
@@ -235,10 +211,8 @@ auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomain
                                                   const tpik::VoidPhase& aVoidPhase,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName, aFixedBlocks);
-    auto tLevelSet = tpik::get_level_set_fields(*tKrinoMesh);
-    set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aVoidPhase, aSnappingParameters};
+    auto tBackgroundMesh = tpik::background_mesh_from_analysis_domain_mesh(aAnalysisDomainMesh, aFixedBlocks);
+    return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, aSnappingParameters};
 }
 
 namespace detail
@@ -285,13 +259,12 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
 
 }  // namespace
 
-auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
-                           const std::vector<::krino::LS_Field>& aLevelSetFields,
+auto compute_sensitivities(const tpik::BackgroundMesh& aBackgroundMesh,
                            const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> tpik::SensitivityMap
 {
-    const auto tSensitivitiesFromKrino = tpik::get_krino_sensitivities(aBulkData, aLevelSetFields);
-    const auto tSpatialDimension = aBulkData.mesh_meta_data().spatial_dimension();
+    const auto tSensitivitiesFromKrino = tpik::get_krino_sensitivities(aBackgroundMesh);
+    const auto tSpatialDimension = aBackgroundMesh.bulkData().mesh_meta_data().spatial_dimension();
     auto tSensitivityMap = utilities::reserved_container<tpik::SensitivityMap>(tSensitivitiesFromKrino.size());
     for (const auto& tCurrentSensitivity : tSensitivitiesFromKrino)
     {

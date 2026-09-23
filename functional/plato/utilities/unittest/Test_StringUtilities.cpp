@@ -60,7 +60,7 @@ TEST(Utilities, ConcatenateStringRValues)
 
 TEST(Utilities, ConcatenateStringCharStar)
 {
-    const auto *const tString1 = "red";
+    const auto* const tString1 = "red";
     const auto tResult = concatenate(tString1, "fish");
     EXPECT_EQ(tResult, "redfish");
 }
@@ -75,7 +75,7 @@ TEST(Utilities, ConcatenateStringView)
 TEST(Utilities, ConcatenateStringsAndNumbers)
 {
     const auto tOne = 1;
-    const auto *const tFish = "fish";
+    const auto* const tFish = "fish";
     const auto tWo = unsigned{2};
     const auto tResult = concatenate(tOne, tFish, tWo, tFish);
     EXPECT_EQ(tResult, "1fish2fish");

@@ -13,6 +13,7 @@
 
 namespace plato::third_party_integration::krino
 {
+struct BackgroundMesh;
 
 using CutMeshSurfaceNodeId = stk::mesh::EntityId;
 using BackgroundMeshNodeId = stk::mesh::EntityId;
@@ -40,11 +41,9 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
 /// set_stk_communicator_for_krino(...);
-/// read_and_setup_for_decomposition(...);
 /// cut_mesh(...);
 /// @endcode
-[[nodiscard]] auto get_krino_sensitivities(const stk::mesh::BulkData& aBulkData,
-                                           const std::vector<::krino::LS_Field>& aLevelSetFields)
+[[nodiscard]] auto get_krino_sensitivities(const BackgroundMesh& aBackgroundMesh)
     -> std::vector<::krino::LevelSetShapeSensitivity>;
 
 /// @brief Return a vector of derivatives of each nodal coordinate with respect to the nodal level set field. The

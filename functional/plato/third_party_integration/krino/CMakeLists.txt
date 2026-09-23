@@ -3,6 +3,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(LINK_LIBS Krino::krino_lib
               PlatoFunctionalUtilities
+              PlatoFunctionalAnalysis
               MPI::MPI_C)
 create_plato_library(PlatoFunctionalKrino "." "${LINK_LIBS}")
 

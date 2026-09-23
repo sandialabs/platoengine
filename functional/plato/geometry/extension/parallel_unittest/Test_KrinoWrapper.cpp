@@ -15,10 +15,12 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
-#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -160,13 +162,12 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
 {
-    const auto tMesh = tpik::read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField = tpik::make_level_set_field_from_primitives(
-        tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tMesh->bulk_data());
+    const auto tBackgroundMesh = tpik::background_mesh_from_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
 
-    tpik::cut_mesh(tMesh->bulk_data(), tLevelSetField, tpik::SnappingParameters{});
-    const auto tDesignDomain = tpik::background_node_ids(*tMesh, tLevelSetField);
-    const auto tSensitivityMap = detail::compute_sensitivities(tMesh->bulk_data(), tLevelSetField, tDesignDomain);
+    tpik::cut_mesh(tBackgroundMesh, tpik::SnappingParameters{});
+    const auto tDesignDomain = tpik::background_node_ids(tBackgroundMesh);
+    const auto tSensitivityMap = detail::compute_sensitivities(tBackgroundMesh, tDesignDomain);
     const auto tResult = tpik::cut_mesh_node_id_multiplicity(tSensitivityMap);
 
     ASSERT_EQ(tResult.size(), 1U);
