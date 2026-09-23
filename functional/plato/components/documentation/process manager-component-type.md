@@ -4,7 +4,7 @@ Multiple process managers may be defined and will run in serial in a given order
 Typically, validation utilities are run first, then optimization algorithms, and finally any post-processing utilities.
 
 ```{tip}
-Run at least `gradient_check` and `constraint_check` for new problem formulations. It takes less time than being baffled wondering why the optimizer doesn't converge. 
+Run at least `objective_gradient_check` and `constraint_check` for new problem formulations. It takes less time than being baffled wondering why the optimizer doesn't converge. 
 ```
 
 The complexity associated with correct formulation of an optimization problem involving multiple software modules
