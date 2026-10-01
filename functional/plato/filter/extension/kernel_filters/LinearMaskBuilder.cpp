@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -64,17 +65,18 @@ void LinearMaskBuilder::createLinearMask(const RowMap& aRowMap)
     mLinearMask = std::make_unique<tpi::tpetra::TpetraCRSMatrix>(
         tCrsRowMap, Teuchos::ArrayView<const std::size_t>{detail::number_of_column_entries_per_row(aRowMap)});
 
-    for (const auto& tRow : aRowMap)
+    const auto tNumLocalRows = static_cast<tpi::tpetra::TpetraLocalOrdinal>(tCrsRowMap->getLocalNumElements());
+    for (const auto tLocalRow : std::views::iota(tpi::tpetra::TpetraLocalOrdinal{0}, tNumLocalRows))
     {
-        const auto tRowGlobalID = tRow.first;
-        const auto& tColumnGlobalIDs = aRowMap.at(tRowGlobalID).mNonzeroColumnGlobalIDs;
-        const auto& tColumnWeights = aRowMap.at(tRowGlobalID).mColumnEntryWeights;
+        const auto tRowGlobalID = tCrsRowMap->getGlobalElement(tLocalRow);
+        const auto& tRowDetail = aRowMap.at(tRowGlobalID);
 
-        assert(!tColumnGlobalIDs.empty());
+        assert(!tRowDetail.mNonzeroColumnGlobalIDs.empty());
 
-        mLinearMask->insertGlobalValues(tRowGlobalID,
-                                        Teuchos::ArrayView<const tpi::tpetra::TpetraGlobalOrdinal>(tColumnGlobalIDs),
-                                        Teuchos::ArrayView<const tpi::tpetra::TpetraScalar>(tColumnWeights));
+        mLinearMask->insertGlobalValues(
+            tRowGlobalID,
+            Teuchos::ArrayView<const tpi::tpetra::TpetraGlobalOrdinal>{tRowDetail.mNonzeroColumnGlobalIDs},
+            Teuchos::ArrayView<const tpi::tpetra::TpetraScalar>{tRowDetail.mColumnEntryWeights});
     }
 
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);

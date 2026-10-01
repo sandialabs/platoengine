@@ -98,26 +98,6 @@ TEST(TpetraHelpers, PutStdVectorOfCoordOnTPetraMultiVector)
     }
 }
 
-TEST(TpetraHelpers, CreateZeroedRowAndColumnVectorsFromCRSMatrix)
-{
-    const auto tCommunicator = Tpetra::getDefaultComm();
-    constexpr int tNumberOfRows = 4;
-    constexpr int tNumberOfColumns = 2;
-    const auto tCrsRowMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfColumns, 0, tCommunicator).release());
-    const auto tCrsDomainMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfRows, 0, tCommunicator).release());
-
-    TpetraCRSMatrix tMatrix(tCrsRowMap, 3);
-    tMatrix.fillComplete(tCrsDomainMap, tCrsRowMap);
-
-    const auto [tRow, tColumn] = create_zeroed_row_and_column_vectors_from_crs_map(tMatrix, tCommunicator);
-
-    EXPECT_EQ(tRow.getMap()->getGlobalNumElements(), tNumberOfColumns);
-    EXPECT_EQ(tColumn.getMap()->getGlobalNumElements(), tNumberOfRows);
-
-    EXPECT_EQ(tColumn.dot(tColumn), 0);
-    EXPECT_EQ(tRow.dot(tRow), 0);
-}
-
 TEST(TpetraHelpers, GetNumberOfLocalElements)
 {
     const auto tCommunicator = Tpetra::getDefaultComm();
