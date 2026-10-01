@@ -16,6 +16,7 @@ namespace plato::filter::extension::kernel_filters
 {
 namespace
 {
+constexpr auto kInitializeToZero = true;
 [[nodiscard]] auto to_teuchos_communicator(const boost::mpi::communicator& aCommunicator)
     -> Teuchos::RCP<Teuchos::MpiComm<int>>
 {
@@ -29,30 +30,34 @@ LinearMask::LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearM
 {
 }
 
+namespace
+{
+[[nodiscard]] auto matrix_multiplication(const std::vector<double>& aValues,
+                                         const boost::mpi::communicator& aCommunicator,
+                                         const third_party_integration::tpetra::TpetraCRSMatrix& aLinearMask,
+                                         third_party_integration::tpetra::TpetraVector& aInputVector,
+                                         third_party_integration::tpetra::TpetraVector& aOutputVector,
+                                         const Teuchos::ETransp aTeuchosTransposeOption) -> std::vector<double>
+{
+    const auto tTeuchosCommunicator = to_teuchos_communicator(aCommunicator);
+    third_party_integration::tpetra::distribute_on_tpetra_vector(aValues, aInputVector);
+    aLinearMask.apply(aInputVector, aOutputVector, aTeuchosTransposeOption);
+    return third_party_integration::tpetra::reduce_tpetra_vector(aOutputVector, tTeuchosCommunicator);
+}
+}  // namespace
+
 auto LinearMask::matrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>
 {
-    const auto tTeuchosCommunicator = to_teuchos_communicator(mCommunicator);
-    auto [tRowVector, tColumnVector] =
-        third_party_integration::tpetra::create_zeroed_row_and_column_vectors_from_crs_map(mLinearMask,
-                                                                                           tTeuchosCommunicator);
-
-    third_party_integration::tpetra::distribute_on_tpetra_vector(aValues, tColumnVector);
-    mLinearMask.apply(tColumnVector, tRowVector);
-
-    return third_party_integration::tpetra::reduce_tpetra_vector(tRowVector, tTeuchosCommunicator);
+    auto tRowVector = third_party_integration::tpetra::TpetraVector{mLinearMask.getRangeMap(), kInitializeToZero};
+    auto tColumnVector = third_party_integration::tpetra::TpetraVector{mLinearMask.getDomainMap(), kInitializeToZero};
+    return matrix_multiplication(aValues, mCommunicator, mLinearMask, tColumnVector, tRowVector, Teuchos::NO_TRANS);
 }
 
 auto LinearMask::transposeMatrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>
 {
-    const auto tTeuchosCommunicator = to_teuchos_communicator(mCommunicator);
-    auto [tRowVector, tColumnVector] =
-        third_party_integration::tpetra::create_zeroed_row_and_column_vectors_from_crs_map(mLinearMask,
-                                                                                           tTeuchosCommunicator);
-
-    third_party_integration::tpetra::distribute_on_tpetra_vector(aValues, tRowVector);
-    mLinearMask.apply(tRowVector, tColumnVector, Teuchos::TRANS);
-
-    return third_party_integration::tpetra::reduce_tpetra_vector(tColumnVector, tTeuchosCommunicator);
+    auto tRowVector = third_party_integration::tpetra::TpetraVector{mLinearMask.getRangeMap(), kInitializeToZero};
+    auto tColumnVector = third_party_integration::tpetra::TpetraVector{mLinearMask.getDomainMap(), kInitializeToZero};
+    return matrix_multiplication(aValues, mCommunicator, mLinearMask, tRowVector, tColumnVector, Teuchos::TRANS);
 }
 
 auto LinearMask::size() const -> std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal,
