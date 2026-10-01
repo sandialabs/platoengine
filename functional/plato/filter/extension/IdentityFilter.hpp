@@ -8,8 +8,7 @@
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), identity_filter,
-    "Maps a node-centered design field to itself, providing no smoothing.",
-    (double, filter_radius, "Do not use - Identity filter cannot have a filter radius.")
+    "Maps a node-centered design field to itself, providing no smoothing."
 )
 // clang-format on
 
@@ -42,8 +41,6 @@ class IdentityFilter : public library::FilterInterface
 // CPD-ON
 
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
-
-[[nodiscard]] auto validate_identity_filter(const input_parser::identity_filter& aInput) -> std::optional<std::string>;
 
 }  // namespace plato::filter::extension
 

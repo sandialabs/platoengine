@@ -1,15 +1,13 @@
 #ifndef PLATO_PROCESSMANAGER_EXTENSION_INITIALGEOMETRYWRITER
 #define PLATO_PROCESSMANAGER_EXTENSION_INITIALGEOMETRYWRITER
 
-#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), initial_geometry_writer,
-    "Writes the initial guess to disk for verification.",
-    (plato::input_parser::FileName, file_name, "Optional: do not use.")
+    "Writes the initial guess to disk for verification."
 )
 // clang-format on
 

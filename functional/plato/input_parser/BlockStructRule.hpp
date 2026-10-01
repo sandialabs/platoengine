@@ -7,7 +7,6 @@
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 
 #include "plato/components/ComponentType.hpp"
@@ -18,7 +17,6 @@
 namespace plato::input_parser
 {
 namespace bsq = boost::spirit::qi;
-namespace bsa = boost::spirit::ascii;
 
 namespace detail
 {
@@ -78,20 +76,21 @@ template <typename Iterator>
 template <typename Iterator, typename BlockStruct, typename AllBlockRules, std::size_t... kIs>
 auto block_or_rule_impl(const AllBlockRules& aAllBlockRules,
                         const detail::NameRule<Iterator>& aNameRule,
-                        std::integer_sequence<std::size_t, kIs...> /*unused*/)
+                        std::integer_sequence<std::size_t, kIs...> /*aSequence*/)
     -> bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>
 {
     namespace bp = boost::phoenix;
+    static const auto tTerminalRule = bsq::rule<Iterator, void(), SkipperType<Iterator>>{bsq::eps(false)};
     if constexpr (kIsNamedBlock<BlockStruct>)
     {
         return bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>{
             aNameRule[bp::at_c<0>(bsq::_val) = bsq::_1] >
-            *((std::get<kIs>(aAllBlockRules)[bp::at_c<kIs>(bsq::_val) = bsq::_1] | ...))};
+            *((std::get<kIs + 1>(aAllBlockRules)[bp::at_c<kIs + 1>(bsq::_val) = bsq::_1] | ... | tTerminalRule))};
     }
     else
     {
         return bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>{
-            *((std::get<kIs>(aAllBlockRules)[bp::at_c<kIs>(bsq::_val) = bsq::_1] | ...))};
+            *((std::get<kIs>(aAllBlockRules)[bp::at_c<kIs>(bsq::_val) = bsq::_1] | ... | tTerminalRule))};
     }
 }
 
@@ -101,7 +100,8 @@ template <typename Iterator, typename BlockStruct, typename AllBlockRules>
 auto block_or_rule(const AllBlockRules& aAllBlockRules, const detail::NameRule<Iterator>& aNameRule)
     -> bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>
 {
-    constexpr auto tNumRules = std::tuple_size_v<AllBlockRules>;
+    constexpr auto tNumRules =
+        kIsNamedBlock<BlockStruct> ? std::tuple_size_v<AllBlockRules> - 1 : std::tuple_size_v<AllBlockRules>;
     return detail::block_or_rule_impl<Iterator, BlockStruct>(aAllBlockRules, aNameRule,
                                                              std::make_index_sequence<tNumRules>{});
 }

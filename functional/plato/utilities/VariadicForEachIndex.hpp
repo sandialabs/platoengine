@@ -16,7 +16,14 @@ namespace plato::utilities
 /// @endcode
 ///
 template <std::size_t kNumberOfIndices, typename Function>
-    requires requires(const Function& aFunction) { aFunction.template operator()<std::size_t{}>(); }
+    requires(kNumberOfIndices == 0)
+constexpr void for_each_index(const Function& /*aFunction*/) noexcept
+{
+}
+
+template <std::size_t kNumberOfIndices, typename Function>
+    requires(kNumberOfIndices > 0 &&
+             requires(const Function& aFunction) { aFunction.template operator()<std::size_t{}>(); })
 void for_each_index(const Function& aFunction)
 {
     [&]<std::size_t... kIndices>(std::index_sequence<kIndices...>)

@@ -32,6 +32,11 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          rocks, plato::components::ComponentType::kFilter,
                          "A test filter",
                          (int, shininess, ""))
+
+PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
+                         people, plato::components::ComponentType::kFilter,
+                         "A test filter with no inputs")
+
 // clang-format on
 
 namespace plato::input_parser::unittest
@@ -40,7 +45,8 @@ namespace
 {
 const auto kComponentParsers = std::unordered_map<std::string, ComponentBlockParser>{
     {"fruits", ComponentBlockParser{fruits{}, ComponentTypeHelper<components::ComponentType::kGeometry>{}}},
-    {"vegetables", ComponentBlockParser{vegetables{}, ComponentTypeHelper<components::ComponentType::kObjective>{}}}};
+    {"vegetables", ComponentBlockParser{vegetables{}, ComponentTypeHelper<components::ComponentType::kObjective>{}}},
+    {"people", ComponentBlockParser{people{}, ComponentTypeHelper<components::ComponentType::kFilter>{}}}};
 
 void check_component_type(const std::vector<InputDataBlock>& aInputsForComponent,
                           const components::ComponentType aComponentType,
@@ -108,6 +114,33 @@ TEST(ParsedInput, ParsesFullValidInput)
     EXPECT_EQ(tFruitInput.apple.value(), 13.0);
     ASSERT_TRUE(tFruitInput.banana.value());
     EXPECT_EQ(tFruitInput.banana.value(), 42);
+}
+
+TEST(ParsedInput, ParsesNoEntryStruct)
+{
+    const auto tInput = std::string_view{
+        "begin people\n"
+        "end\n"};
+
+    const auto tParsedInputOrError = make_parsed_input(std::string{tInput}, kComponentParsers);
+    ASSERT_TRUE(tParsedInputOrError.hasValue());
+
+    const auto& tParsedInput = tParsedInputOrError.value();
+    const auto& tPeopleInputs = tParsedInput.get<components::ComponentType::kFilter>();
+    EXPECT_EQ(tPeopleInputs.size(), 1U);
+}
+
+TEST(ParsedInput, CannotParseNoEntryStructWithDefinedFields)
+{
+    const auto tInput = std::string_view{
+        "begin people\n"
+        "double 5\n"
+        "end\n"};
+
+    const auto tParsedInputOrError = make_parsed_input(std::string{tInput}, kComponentParsers);
+    ASSERT_TRUE(tParsedInputOrError.hasError());
+    const auto& tErrorMessage = tParsedInputOrError.error();
+    EXPECT_FALSE(tErrorMessage.empty());
 }
 
 TEST(ParsedInput, ParsesFullInvalidInput)

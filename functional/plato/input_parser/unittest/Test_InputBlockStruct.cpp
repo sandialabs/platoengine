@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <boost/fusion/sequence/intrinsic/size.hpp>
+#include <boost/fusion/support/is_sequence.hpp>
+
 #include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
@@ -36,6 +39,16 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFilterBlock, 
     "Description",
     (double, field1, "help")
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), TestFilterBlockNoFields, 
+    "Description"
+)
+
+PLATO_NAMED_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), TestNamedBlockNoFields, plato::components::ComponentType::kConstraint,
+    "A test constraint"
 )
 // clang-format on
 
@@ -87,6 +100,22 @@ TEST(InputBlockStruct, ProcessManager)
     auto tTestBlock = TestProcessManagerBlock{};
     tTestBlock.field1 = kArbitraryInt;
     test_utilities::test_existence_and_equality(tTestBlock.field1, kArbitraryInt);
+}
+
+TEST(InputBlockStruct, FilterNoFields)
+{
+    using InputBlock = plato::input_parser::TestFilterBlockNoFields;
+    static_assert(boost::fusion::traits::is_sequence<InputBlock>::value);
+    static_assert(boost::fusion::result_of::size<InputBlock>::value == 0);
+}
+
+TEST(InputBlockStruct, NamedStructNoFields)
+{
+    TestNamedBlockNoFields tTestBlock;
+    tTestBlock.name = "icarus";
+    test_utilities::test_existence_and_equality(tTestBlock.name, "icarus");
+    EXPECT_TRUE(kIsNamedBlock<TestNamedBlockNoFields>);
+    EXPECT_EQ(InputTypeName<TestNamedBlockNoFields>::mName, "TestNamedBlockNoFields");
 }
 
 }  // namespace plato::input_parser::unittest
