@@ -4,7 +4,6 @@
 
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/HelmholtzFilter.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
@@ -29,17 +28,6 @@ TEST(FilterValidation, ValidateNumberOfProcessorsFactorOfCommWorld)
     EXPECT_FALSE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // valid
     tFilter.number_of_processors = 2;
     EXPECT_TRUE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // invalid
-}
-
-TEST(FilterValidation, ValidatedIdentityFilter)
-{
-    auto tIdentityFilter = test_utilities::create_valid_identity_filter_input();
-
-    EXPECT_FALSE(validate_identity_filter(tIdentityFilter).has_value());
-    tIdentityFilter.filter_radius = 1;
-    EXPECT_TRUE(validate_identity_filter(tIdentityFilter).has_value());
-    tIdentityFilter.filter_radius = boost::none;
-    EXPECT_FALSE(validate_identity_filter(tIdentityFilter).has_value());
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)

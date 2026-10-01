@@ -29,6 +29,8 @@ const auto kTestComponentDocumentation = documentation::ComponentDocumentation{
             .mName = "creature", .mType = "permanent", .mComment = "Attacks and blocks"},
         documentation::InputKeywordDocumentation{
             .mName = "instant", .mType = "spell", .mComment = "Spell played at instant speed"}}};
+const auto kTestComponentDocumentationNoInputs =
+    documentation::ComponentDocumentation{.mComponentType = kTestComponentType, .mDescription = "Pogs", .mInputs = {}};
 
 void check_table(const std::string& aTable, const test_utilities::TestContext& aTestContext)
 {
@@ -179,6 +181,12 @@ TEST(MarkdownFormatter, MarkdownInputsTable)
 {
     const auto tTable = markdown_inputs_table(kTestComponentDocumentation);
     check_table(tTable, TEST_CONTEXT("Markdown inputs table"));
+}
+
+TEST(MarkdownFormatter, MarkdownInputsEmptyTable)
+{
+    const auto tTable = markdown_inputs_table(kTestComponentDocumentationNoInputs);
+    EXPECT_TRUE(tTable.empty());
 }
 
 TEST(MarkdownFormatter, SectionReference)

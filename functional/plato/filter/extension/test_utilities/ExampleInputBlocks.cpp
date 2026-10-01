@@ -17,10 +17,7 @@ auto create_valid_helmholtz_filter_input() -> input_parser::helmholtz_filter
                                           /*.boundary_sticking_penalty=*/1.0};
 }
 
-auto create_valid_identity_filter_input() -> input_parser::identity_filter
-{
-    return input_parser::identity_filter{/*.filter_radius = */ boost::none};
-}
+auto create_valid_identity_filter_input() -> input_parser::identity_filter { return input_parser::identity_filter{}; }
 
 auto create_valid_kernel_filter_input() -> input_parser::kernel_filter
 {

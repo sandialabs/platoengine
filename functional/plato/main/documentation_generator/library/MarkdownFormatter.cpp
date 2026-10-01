@@ -142,6 +142,10 @@ auto component_subsection(const std::string_view aComponentName,
 
 auto markdown_inputs_table(const documentation::ComponentDocumentation& aComponentDocumentation) -> std::string
 {
+    if (aComponentDocumentation.mInputs.empty())
+    {
+        return {};
+    }
     const auto tColumnWidths = {28, 27, 45};
     const auto tColumnLabels = {"Keyword", "Type", "Description"};
     auto tTableHeader = myst_table_header(tColumnWidths, tColumnLabels);

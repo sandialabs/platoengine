@@ -65,13 +65,6 @@ TEST_F(FilterValidationTestFixture, ValidIdentityFilter)
     EXPECT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 }
 
-TEST_F(FilterValidationTestFixture, CheckNoFilterRadiusIdentity)
-{
-    auto tIdentityFilter = filter::extension::test_utilities::create_valid_identity_filter_input();
-    tIdentityFilter.filter_radius = 1;  // make invalid
-    check_filter_validation(tIdentityFilter, TEST_CONTEXT("Bad identity filter"));
-}
-
 TEST_F(FilterValidationTestFixture, ValidHelmholtzFilter)
 {
     const auto tInput = kValidInputBase | filter::extension::test_utilities::create_valid_helmholtz_filter_input();

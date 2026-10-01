@@ -56,6 +56,12 @@ void register_help_documentation();
 
 // clang-format off
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define EMPTY_ATTRIBUTES(ATTRIBUTES) ATTRIBUTES
+#define TYPES_AS_OPTIONAL_FROM_ATTRIBUTES(ATTRIBUTES) \
+        TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))
+
+#define DOCUMENTATION_CONSTRUCTOR(ATTRIBUTES) \
+    BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))
 
 #define OPTIONAL_TYPE(r, data, elem) boost::optional<BOOST_PP_TUPLE_ELEM(0, elem)>, BOOST_PP_TUPLE_ELEM(1, elem)
 #define PLATO_BOOST_FUSION_NAME_FIELD (std::string, name)
@@ -72,7 +78,7 @@ void register_help_documentation();
     .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
     );
 
-#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)               \
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ...)               \
 namespace plato::input_parser {                                                                                                  \
 template<>                                                                                                                       \
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
@@ -81,7 +87,9 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
         using documentation::data_type_documentation;                                                                            \
         auto tCommands = documentation::ComponentDocumentation{                                                                  \
             .mComponentType = (COMPONENT_TYPE), .mDescription = (DESCRIPTION), .mInputs = {}};                                   \
-        BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
+        BOOST_PP_IIF(BOOST_PP_IS_EMPTY(__VA_ARGS__),                                                                              \
+                EMPTY_ATTRIBUTES,                                                                                                \
+                DOCUMENTATION_CONSTRUCTOR)(__VA_ARGS__)                                                                           \
         return tCommands;                                                                                                        \
     }};                                                                                                                          \
 };                                                                                                                               \
@@ -104,15 +112,17 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)      \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ...)      \
 /* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */            \
 BOOST_FUSION_DEFINE_STRUCT(                                                                                \
     NAMESPACE_SEQ,                                                                                         \
     STRUCT_NAME,                                                                                           \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))               \
+    BOOST_PP_IIF(BOOST_PP_IS_EMPTY(__VA_ARGS__),                                                            \
+        EMPTY_ATTRIBUTES,                                                                                  \
+        TYPES_AS_OPTIONAL_FROM_ATTRIBUTES)(__VA_ARGS__)                                                     \
 )                                                                                                          \
 /* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */              \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES) \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION __VA_OPT__(,) __VA_ARGS__) \
 namespace plato::input_parser{                                                                             \
 template<>                                                                                                 \
 struct InputTypeName<STRUCT_NAME>                                                                          \
@@ -125,14 +135,14 @@ struct ComponentTypeOfInputBlock<STRUCT_NAME>                                   
 };                                                                                                         \
 } 
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                      \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, DESCRIPTION, ATTRIBUTES) \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ...)                      \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, DESCRIPTION __VA_OPT__(,) __VA_ARGS__) \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                      \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, DESCRIPTION, ATTRIBUTES)  \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ...)                      \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, DESCRIPTION __VA_OPT__(,) __VA_ARGS__) \
 
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                         \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, DESCRIPTION, ATTRIBUTES)    \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ...)                         \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, DESCRIPTION __VA_OPT__(,) __VA_ARGS__) \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
@@ -151,15 +161,15 @@ PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES) \
+#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ...) \
 /* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */             \
 BOOST_FUSION_DEFINE_STRUCT(                                                                                 \
     NAMESPACE_SEQ,                                                                                          \
     STRUCT_NAME,                                                                                            \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))                       \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(__VA_ARGS__)))                  \
 )                                                                                                           \
 /* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */               \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)  \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION __VA_OPT__(,) __VA_ARGS__) \
 namespace plato::input_parser{                                                                              \
 template<>                                                                                                  \
 struct InputTypeName<STRUCT_NAME>                                                                           \

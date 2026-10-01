@@ -18,6 +18,11 @@ BOOST_FUSION_DEFINE_STRUCT(
     (double, mDouble)
     (std::string, mString) //NOLINT
 )
+
+BOOST_FUSION_DEFINE_STRUCT(
+    (plato)(utilities)(unittest),
+    EmptyBoostFusionTestStruct, //NOLINT
+)
 // clang-format on
 
 namespace plato::utilities::unittest
@@ -53,5 +58,14 @@ TEST(VariadicForEachIndex, CollectBoostFusionStructMemberNames)
     for_each_index<tNumberOfMembers>(CollectBoostFusionMemberNames{tMemberNames});
     const auto tExpectedMemberNames = std::vector<std::string>{"mInteger", "mDouble", "mString"};
     EXPECT_EQ(tMemberNames, tExpectedMemberNames);
+}
+
+TEST(VariadicForEachIndex, NoIndicesForEmptyBoostFusionStruct)
+{
+    std::vector<std::string> tMemberNames;
+    constexpr auto tNumberOfMembers = boost::fusion::result_of::size<EmptyBoostFusionTestStruct>::value;
+    static_assert(tNumberOfMembers == 0);
+    for_each_index<tNumberOfMembers>(CollectBoostFusionMemberNames{tMemberNames});
+    EXPECT_TRUE(tMemberNames.empty());
 }
 }  // namespace plato::utilities::unittest
